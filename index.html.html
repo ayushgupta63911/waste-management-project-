@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swachh Nagar - Nagar Nigam Smart Waste Management & Grievance Portal</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet CSS & JS for GIS Waste Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js CDN for Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --secondary: #0284c7;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+    }
+    * {
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .badge-pulse {
+      position: relative;
+    }
+    .badge-pulse::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 9999px;
+      animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.15); opacity: 0; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .toast-slide-in {
+      animation: slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideInDown {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    /* Camera Shutter Flash */
+    .shutter-flash {
+      animation: flashAnim 0.3s ease-out;
+    }
+    @keyframes flashAnim {
+      0% { opacity: 0.9; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ================= TOP MUNICIPAL BANNER & HEADER ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <!-- Official Strip -->
+    <div class="bg-emerald-900 text-emerald-100 text-[11px] py-1 px-4 flex flex-wrap items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Swachh Bharat Mission (Urban) &bull; Nagar Nigam Municipal Corporation Live Grievance Redressal</span>
+      </div>
+      <div class="flex items-center gap-4 text-emerald-200">
+        <span>Toll-Free Control Room: <a href="tel:18001805151" class="font-bold underline text-white">1800-180-5151</a></span>
+        <span class="hidden sm:inline">|</span>
+        <span class="hidden sm:inline">24x7 Live GPS Sanitation Fleet</span>
+      </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.app.navigateTo('report')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-lg tracking-tight text-slate-900">SWACHH NAGAR</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Live Portal</span>
+            </div>
+            <p class="text-[10px] text-slate-500 font-medium -mt-0.5">Municipal Waste Management with Live Camera & GPS</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Desktop) -->
+        <nav class="hidden lg:flex items-center gap-1">
+          <button data-view-target="report" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="camera" class="w-4 h-4 text-emerald-600"></i> 1. Report Waste
+          </button>
+          <button data-view-target="tracking" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="route" class="w-4 h-4"></i> 2. Track Complaint
+          </button>
+          <button data-view-target="officer" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="building-2" class="w-4 h-4"></i> 3. Nagar Nigam Desk
+          </button>
+          <button data-view-target="sweeper" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="truck" class="w-4 h-4"></i> 4. Sweeper Tasks
+          </button>
+          <button data-view-target="admin" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 5. Admin Analytics
+          </button>
+          <button data-view-target="awareness" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-1.5">
+            <i data-lucide="book-open-check" class="w-4 h-4"></i> 6. Waste Awareness
+          </button>
+        </nav>
+
+        <!-- Right Side: Fast Role Switcher & Auth Trigger -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="flex items-center bg-slate-100 hover:bg-slate-200/80 rounded-xl p-1 border border-slate-200 transition-all">
+            <span class="text-[10px] uppercase font-bold text-slate-500 px-2 hidden sm:inline">Role:</span>
+            <select id="quickRoleSwitcher" class="text-xs font-semibold bg-transparent border-0 text-slate-800 focus:ring-0 cursor-pointer pr-4 py-1">
+              <option value="citizen">Citizen (Ayush Gupta)</option>
+              <option value="officer">Ward Officer (Dr. Sharma)</option>
+              <option value="sweeper">Sweeper Crew (Ramesh Kumar)</option>
+              <option value="admin">Municipal Commissioner (Admin)</option>
+            </select>
+          </div>
+
+          <div id="userMenuWrapper" class="flex items-center gap-2">
+            <button onclick="Auth.openAuthModal('login')" class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs border border-emerald-300 hover:ring-2 hover:ring-emerald-400 transition-all" title="User Profile / Switch Account">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Mobile Hamburger -->
+          <button id="mobileMenuToggleBtn" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div id="mobileNavDrawer" class="hidden lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1">
+      <button data-view-target="report" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="camera" class="w-4 h-4 text-emerald-600"></i> 1. Report Waste (Live Camera/GPS)
+      </button>
+      <button data-view-target="tracking" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="route" class="w-4 h-4"></i> 2. Complain Tracking & Feedback
+      </button>
+      <button data-view-target="officer" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="building-2" class="w-4 h-4"></i> 3. Local Nagar Nigam Desk (Ward Officer)
+      </button>
+      <button data-view-target="sweeper" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="truck" class="w-4 h-4"></i> 4. Sweeper Pickup Portal
+      </button>
+      <button data-view-target="admin" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 5. Admin City Dashboard
+      </button>
+      <button data-view-target="awareness" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+        <i data-lucide="book-open-check" class="w-4 h-4"></i> 6. Waste Awareness & Segregation
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= ACTIVE ROLE CONTEXT BANNER ================= -->
+  <div class="bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div id="roleContextBanner" class="flex items-center gap-2">
+        <!-- Dynamically rendered description of currently selected role -->
+      </div>
+      <div class="flex items-center gap-3 text-[11px] text-slate-400">
+        <span>Active User: <strong id="navUserName" class="text-emerald-400">Ayush Gupta</strong></span>
+        <span>Role: <strong id="navUserRole" class="text-white">Citizen Portal</strong></span>
+        <button id="logoutBtn" class="text-slate-400 hover:text-rose-400 underline">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN VIEW CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- =================================================================== -->
+    <!-- VIEW 1: REPORT WASTE ISSUES (Module 2 & 3: Citizen Reporting & Nigam Routing) -->
+    <!-- =================================================================== -->
+    <section id="view-report" class="view-section">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Form Column (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+            <div>
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <i data-lucide="megaphone" class="w-6 h-6 text-emerald-600"></i>
+                Report Waste Issue
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Take a <strong>Live Photo</strong> & lock <strong>Live GPS Location</strong> to dispatch local Nagar Nigam sweepers instantly.
+              </p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hidden sm:inline-block">
+              24-Hour SLA
+            </span>
+          </div>
+
+          <form id="reportWasteForm" class="space-y-5">
+            
+            <!-- 1. Waste Issue Category -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                1. Type of Waste Issue <span class="text-rose-500">*</span>
+              </label>
+              <select id="reportWasteType" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs">
+                <option value="Overflowing Community Dustbin">Overflowing Community Dustbin / Green Bin</option>
+                <option value="Illegal Roadside Garbage Dump">Illegal Roadside Garbage Dump</option>
+                <option value="Dead Animal Carcass / Biohazard">Dead Animal Carcass / Biohazard Waste</option>
+                <option value="Plastic & Electronic Waste Dump">Plastic & Electronic Waste Dump</option>
+                <option value="Construction & Demolition Debris">Construction & Demolition Debris (Malba)</option>
+                <option value="Blocked Drain with Floating Waste">Blocked Open Drain with Floating Waste</option>
+                <option value="Uncollected Door-to-Door Household Waste">Uncollected Door-to-Door Household Waste</option>
+              </select>
+            </div>
+
+            <!-- 2. Ward & Local Nagar Nigam Routing -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  2. Select Local Area / Nagar Nigam Ward <span class="text-rose-500">*</span>
+                </label>
+                <span class="text-[11px] text-emerald-600 font-semibold">Auto-Routes to Ward Desk</span>
+              </div>
+              <select id="reportWard" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs">
+                <!-- Populated dynamically via JS -->
+              </select>
+              
+              <!-- Dynamic Local Nagar Nigam Office Card -->
+              <div id="wardNagarNigamCard" class="mt-2.5"></div>
+            </div>
+
+            <!-- 3. Severity Level -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                3. Severity / Urgency Level
+              </label>
+              <div class="grid grid-cols-3 gap-2.5">
+                <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center hover:bg-slate-50 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:checked]:text-emerald-900 transition-all">
+                  <input type="radio" name="severity" value="Low" class="hidden" />
+                  <span class="block text-xs font-bold">Low</span>
+                  <span class="text-[10px] text-slate-500">Minor littering</span>
+                </label>
+                <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center hover:bg-slate-50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50/50 has-[:checked]:text-amber-900 transition-all">
+                  <input type="radio" name="severity" value="Medium" checked class="hidden" />
+                  <span class="block text-xs font-bold">Medium</span>
+                  <span class="text-[10px] text-slate-500">Piled up waste</span>
+                </label>
+                <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center hover:bg-slate-50 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50 has-[:checked]:text-rose-900 transition-all">
+                  <input type="radio" name="severity" value="High" class="hidden" />
+                  <span class="block text-xs font-bold">High / Urgent</span>
+                  <span class="text-[10px] text-slate-500">Foul odor / Hazard</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 4. Location & Address with LIVE GPS & Auto-Reverse Geocoding -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  4. Exact Street Address & Landmark <span class="text-rose-500">*</span>
+                </label>
+                <button type="button" id="detectLocationBtn" onclick="fetchRealGpsLocation()" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                  <i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-700"></i>
+                  <span>📍 Get Live GPS Location</span>
+                </button>
+              </div>
+
+              <!-- Live GPS Locked Status Display -->
+              <div id="liveGpsStatus" class="hidden mb-2"></div>
+
+              <input type="text" id="reportAddress" required placeholder="e.g. Near Metro Gate 2, Park Road Market"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs mb-2" />
+              <input type="text" id="reportLandmark" placeholder="Prominent Landmark (e.g. Opposite SBI ATM, Beside Community Garden)"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs" />
+              <input type="hidden" id="reportLat" value="26.8524" />
+              <input type="hidden" id="reportLng" value="80.9421" />
+            </div>
+
+            <!-- 5. Photo Upload with LIVE CAMERA & Device File & Presets -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  5. Photo Proof of Waste <span class="text-rose-500">*</span>
+                </label>
+                <button type="button" onclick="openLiveCamera('citizen')" class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg text-xs font-bold flex items-center gap-1 transition-all shadow-xs">
+                  <i data-lucide="camera" class="w-3.5 h-3.5 text-rose-600"></i>
+                  <span>📸 Open Live Camera</span>
+                </button>
+              </div>
+
+              <!-- Upload Container -->
+              <div class="border-2 border-dashed border-slate-200 hover:border-emerald-400 rounded-2xl p-4 text-center bg-slate-50/50 hover:bg-emerald-50/30 transition-all relative">
+                
+                <div id="photoUploadPrompt" class="space-y-2 py-2">
+                  <div class="flex items-center justify-center gap-3">
+                    <button type="button" onclick="openLiveCamera('citizen')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
+                      <i data-lucide="camera" class="w-4 h-4"></i> Take Live Photo
+                    </button>
+                    <label class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 border border-slate-300">
+                      <i data-lucide="upload" class="w-4 h-4"></i> Choose File
+                      <input type="file" id="reportPhotoFile" accept="image/*" class="hidden" />
+                    </label>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Supports Mobile Camera, Webcam, or local PNG/JPG images</p>
+                </div>
+
+                <!-- Preview Box -->
+                <div id="photoPreviewContainer" class="hidden relative">
+                  <img id="photoPreviewImg" src="" alt="Waste Preview" class="w-full h-48 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                  <button type="button" onclick="Complaints.clearPhotoPreview()" 
+                    class="absolute top-2 right-2 p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-md transition-all" title="Remove Photo">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                  <span class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/70 text-white text-[10px] backdrop-blur-xs font-bold flex items-center gap-1">
+                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Photo Attached
+                  </span>
+                </div>
+              </div>
+
+              <!-- Quick Demo Photo Presets for instant testing -->
+              <div class="mt-2.5 flex flex-wrap items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fast Presets:</span>
+                <button type="button" data-photo-key="overflowing_bin" class="btn-demo-photo px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 border border-slate-200 transition-all flex items-center gap-1">
+                  <i data-lucide="trash" class="w-3 h-3"></i> Overflowing Bin
+                </button>
+                <button type="button" data-photo-key="street_garbage" class="btn-demo-photo px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 border border-slate-200 transition-all flex items-center gap-1">
+                  <i data-lucide="wind" class="w-3 h-3"></i> Street Garbage
+                </button>
+                <button type="button" data-photo-key="plastic_dump" class="btn-demo-photo px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 border border-slate-200 transition-all flex items-center gap-1">
+                  <i data-lucide="box" class="w-3 h-3"></i> Debris / Plastic
+                </button>
+              </div>
+            </div>
+
+            <!-- 6. Grievance Description -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                6. Grievance Details / Description <span class="text-rose-500">*</span>
+              </label>
+              <textarea id="reportDescription" rows="3" required placeholder="Describe the waste situation, accumulation period, or health hazards..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/30 hover:shadow-lg transition-all flex items-center justify-center gap-2">
+              <i data-lucide="send" class="w-4 h-4"></i> Submit Waste Grievance to Nagar Nigam
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Information & Workflow Sidebar (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Live Features Showcase Badge -->
+          <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-sm space-y-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-emerald-100">
+              Live Hardware Integration Active
+            </span>
+            <h3 class="text-sm font-bold">Live Camera & GPS Enabled</h3>
+            <p class="text-xs text-emerald-100 leading-relaxed">
+              Snap real live photos directly through your phone/laptop webcam with GPS satellite reverse-geocoding into municipal ward maps.
+            </p>
+          </div>
+
+          <!-- How It Works Card -->
+          <div class="bg-gradient-to-br from-slate-900 to-emerald-950 text-white rounded-2xl p-6 shadow-sm border border-slate-800">
+            <h2 class="text-base font-bold flex items-center gap-2 text-emerald-400">
+              <i data-lucide="git-branch" class="w-5 h-5"></i>
+              How Your Complaint Is Handled
+            </h2>
+            <p class="text-xs text-slate-300 mt-1">Under Nagar Nigam Civic Charter & Swachh Directives</p>
+
+            <div class="mt-5 space-y-4 text-xs">
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs border border-emerald-500/40">1</span>
+                <div>
+                  <h4 class="font-bold text-white">Citizen Submits Live Report</h4>
+                  <p class="text-slate-300 text-[11px] mt-0.5">Captures photo, category, and GPS coordinates with a unique Ticket ID.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs border border-emerald-500/40">2</span>
+                <div>
+                  <h4 class="font-bold text-white">Direct Routing to Nagar Nigam Desk</h4>
+                  <p class="text-slate-300 text-[11px] mt-0.5">Assigned to the local Zonal Sanitary Officer based on the selected ward.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs border border-emerald-500/40">3</span>
+                <div>
+                  <h4 class="font-bold text-white">Nagar Nigam Instructs Sweeper</h4>
+                  <p class="text-slate-300 text-[11px] mt-0.5">Officer gives specific instructions and dispatches a sweeper crew with a tipper truck.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs border border-emerald-500/40">4</span>
+                <div>
+                  <h4 class="font-bold text-white">Resolution Proof & Citizen Rating</h4>
+                  <p class="text-slate-300 text-[11px] mt-0.5">Sweeper uploads "After Cleaning" photo. Citizen tracks status & rates resolution.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Bio-waste Helpline Card -->
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900">
+            <div class="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-amber-800">
+              <i data-lucide="alert-octagon" class="w-4 h-4 text-amber-600"></i>
+              Dead Animals / Hazardous Waste
+            </div>
+            <p class="text-xs mt-1.5 text-amber-950 font-medium">
+              For immediate removal of dead animals or toxic hospital waste on public roads, contact the <strong>Nagar Nigam Rapid Response Bio-Cell</strong>:
+            </p>
+            <div class="mt-3 flex items-center justify-between bg-white/80 p-2.5 rounded-xl border border-amber-200">
+              <span class="font-mono font-bold text-xs">Emergency Hotline</span>
+              <a href="tel:0522220099" class="font-bold text-xs text-rose-600 underline">0522-220099</a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: COMPLAINT TRACKING & FEEDBACK (Module 5) -->
+    <!-- =================================================================== -->
+    <section id="view-tracking" class="view-section hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Search & Recent Complaints List (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <i data-lucide="search" class="w-4 h-4 text-emerald-600"></i>
+              Track Complaint Status
+            </h2>
+            <form id="trackingSearchForm" class="space-y-3">
+              <div class="relative">
+                <input type="text" id="trackingSearchInput" placeholder="Enter Complaint ID (e.g. NN-2026-8492)"
+                  class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs uppercase" />
+                <i data-lucide="hash" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="route" class="w-4 h-4"></i> Track Grievance
+              </button>
+            </form>
+          </div>
+
+          <!-- Quick Select Active Complaints -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Recent Grievance Tickets</h3>
+              <span class="text-[10px] text-slate-400">Click to load</span>
+            </div>
+            <div id="recentTrackingCards" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Live Step Timeline & Verification Details (8 cols) -->
+        <div class="lg:col-span-8">
+          <div id="trackingDetailContainer"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 3: LOCAL AREA NAGAR NIGAM DESK (Module 3 & 4: Review & Instruct Sweeper) -->
+    <!-- =================================================================== -->
+    <section id="view-officer" class="view-section hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+              <i data-lucide="building-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-black text-slate-900 tracking-tight">Nagar Nigam Ward Officer Dispatch Desk</h1>
+              <p class="text-xs text-slate-500 mt-0.5">Review citizen reports, issue municipal instructions, and dispatch sanitation sweepers</p>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="flex flex-wrap items-center gap-3">
+            <select id="filterOfficerWard" onchange="Complaints.renderOfficerComplaintsTable()"
+              class="px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-emerald-500">
+              <option value="all">All Nagar Nigam Wards</option>
+            </select>
+
+            <select id="filterOfficerStatus" onchange="Complaints.renderOfficerComplaintsTable()"
+              class="px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-emerald-500">
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending Verification</option>
+              <option value="dispatched">Sweeper Dispatched</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 bg-slate-50/50">
+                <th class="py-3 px-4">Ticket ID</th>
+                <th class="py-3 px-4">Waste Issue</th>
+                <th class="py-3 px-4">Ward / Reporter</th>
+                <th class="py-3 px-4">Severity</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Assigned Sweeper</th>
+                <th class="py-3 px-4 text-right">Officer Action</th>
+              </tr>
+            </thead>
+            <tbody id="officerComplaintsTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 4: SWEEPER SANITATION WORKER MODE (Pickup Requests & Proof Upload) -->
+    <!-- =================================================================== -->
+    <section id="view-sweeper" class="view-section hidden">
+      <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Sweeper Header Profile Banner -->
+        <div class="bg-gradient-to-r from-emerald-800 to-teal-700 text-white rounded-2xl p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-emerald-200 border border-white/20">
+              <i data-lucide="truck" class="w-7 h-7"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold">Sanitation Crew Pickup Terminal</h1>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 uppercase">Active Duty</span>
+              </div>
+              <p class="text-xs text-emerald-100 mt-1">Logged In: <strong>Ramesh Kumar</strong> &bull; Vehicle: <strong>Auto Tipper (UP-32-BW-4821)</strong> &bull; Ward 4</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-emerald-200 block">Duty Shift</span>
+            <span class="text-sm font-bold text-white">06:00 AM - 02:00 PM</span>
+          </div>
+        </div>
+
+        <!-- Task Instructions Alert -->
+        <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-xs text-sky-900 flex items-start gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5"></i>
+          <div>
+            <h4 class="font-bold text-sky-950">Municipal Sweeper Standard Operating Procedure:</h4>
+            <p class="mt-0.5">Review Nagar Nigam officer instructions for each ticket. Wear safety gloves and boots. Clear waste completely and take an after-cleaning photo with clear pavement proof before marking resolved.</p>
+          </div>
+        </div>
+
+        <!-- Assigned Tasks List -->
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <i data-lucide="clipboard-list" class="w-4 h-4 text-emerald-600"></i>
+            Assigned Waste Pickup Requests
+          </h2>
+          <div id="sweeperTasksContainer" class="space-y-4"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 5: ADMIN DASHBOARD & GIS MAP (Module 6) -->
+    <!-- =================================================================== -->
+    <section id="view-admin" class="view-section hidden space-y-6">
+      
+      <!-- Top Title & Export Action -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-emerald-600"></i>
+            Municipal Commissioner & City Admin Dashboard
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">Real-time waste monitoring, GIS heatmap, workforce dispatch, and SLA analytics</p>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <button id="exportReportBtn" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all flex items-center gap-1.5">
+            <i data-lucide="download" class="w-4 h-4"></i> Export CSV Report
+          </button>
+          <button id="btnResetDemoData" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-all flex items-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Demo Data
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Lodged</span>
+          <span id="kpiTotalComplaints" class="text-2xl font-black text-slate-900 mt-1 block">0</span>
+          <span class="text-[10px] text-slate-400 mt-1 block">City-wide Grievances</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Resolved</span>
+          <span id="kpiResolvedComplaints" class="text-2xl font-black text-emerald-600 mt-1 block">0</span>
+          <span class="text-[10px] text-emerald-600 font-semibold mt-1 block">✓ Cleared & Verified</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Dispatched</span>
+          <span id="kpiInProgressComplaints" class="text-2xl font-black text-sky-600 mt-1 block">0</span>
+          <span class="text-[10px] text-sky-600 font-semibold mt-1 block">🚚 Sweepers on Route</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Pending</span>
+          <span id="kpiPendingComplaints" class="text-2xl font-black text-rose-500 mt-1 block">0</span>
+          <span class="text-[10px] text-rose-500 font-semibold mt-1 block">Needs Verification</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Waste Cleared</span>
+          <span id="kpiWasteTons" class="text-2xl font-black text-teal-600 mt-1 block">0 MT</span>
+          <span class="text-[10px] text-teal-600 font-semibold mt-1 block">Sent to MRF Plant</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Citizen Rating</span>
+          <span id="kpiSatisfactionRating" class="text-2xl font-black text-amber-500 mt-1 block">4.8 ★</span>
+          <span class="text-[10px] text-amber-600 font-semibold mt-1 block">Public Satisfaction</span>
+        </div>
+      </div>
+
+      <!-- GIS Map & Doughnut Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="map" class="w-4 h-4 text-emerald-600"></i>
+                Live GIS Waste Grievance & Pickup Heatmap
+              </h3>
+              <p class="text-[11px] text-slate-400">Click any marker to inspect photo proof and complaint details</p>
+            </div>
+            <div class="flex items-center gap-3 text-[11px]">
+              <span class="flex items-center gap-1 font-medium text-slate-600">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Pending
+              </span>
+              <span class="flex items-center gap-1 font-medium text-slate-600">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Dispatched
+              </span>
+              <span class="flex items-center gap-1 font-medium text-slate-600">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Resolved
+              </span>
+            </div>
+          </div>
+          <div id="adminGisMap" class="w-full h-80 sm:h-96 rounded-xl border border-slate-200 overflow-hidden z-10"></div>
+        </div>
+
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i>
+            Resolution Ratio
+          </h3>
+          <p class="text-[11px] text-slate-400 mb-4">Grievance clearance efficiency breakdown</p>
+          <div class="flex-1 min-h-[220px] relative flex items-center justify-center">
+            <canvas id="statusDoughnutChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ward Bar Chart & Audit Stream -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-600"></i>
+            Ward-wise Grievance Volume & Resolution Speed
+          </h3>
+          <p class="text-[11px] text-slate-400 mb-4">Comparison of complaints resolved vs pending across city zones</p>
+          <div class="h-64">
+            <canvas id="wardBarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i>
+            Nagar Nigam Real-Time Audit Log
+          </h3>
+          <p class="text-[11px] text-slate-400 mb-3">Live stream of dispatches, ticket updates, and inspections</p>
+          <div id="adminActivityStream" class="flex-1 overflow-y-auto max-h-60 pr-1 divide-y divide-slate-100"></div>
+        </div>
+      </div>
+
+      <!-- Sweeper Fleet Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+              Sanitation Crew & Sweeper Fleet Performance
+            </h3>
+            <p class="text-[11px] text-slate-400">Deployed drivers, tipper trucks, and sanitation personnel</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 bg-slate-50/50">
+                <th class="py-2.5 px-4">Sweeper Name</th>
+                <th class="py-2.5 px-4">Zone / Ward</th>
+                <th class="py-2.5 px-4">Vehicle Assigned</th>
+                <th class="py-2.5 px-4 text-center">Active Jobs</th>
+                <th class="py-2.5 px-4 text-center">Pickups Cleared</th>
+                <th class="py-2.5 px-4 text-right">Rating</th>
+              </tr>
+            </thead>
+            <tbody id="adminSweeperTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 6: WASTE AWARENESS & EDUCATION (Module 7) -->
+    <!-- =================================================================== -->
+    <section id="view-awareness" class="view-section hidden space-y-8">
+      
+      <!-- Top Hero Banner -->
+      <div class="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+            Swachh Citizen Awareness Portal
+          </span>
+          <h1 class="text-2xl sm:text-4xl font-black mt-3 tracking-tight">Source Segregation is Every Citizen's Responsibility</h1>
+          <p class="text-xs sm:text-sm text-emerald-100 mt-2 leading-relaxed">
+            By segregating your household waste into Wet, Dry, and Hazardous bins, you help 10,000+ Nagar Nigam sanitation workers stay safe, prevent overflowing landfills, and turn organic waste into clean compost.
+          </p>
+        </div>
+        <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+          <i data-lucide="recycle" class="w-80 h-80"></i>
+        </div>
+      </div>
+
+      <!-- 3-Color Segregation Rules (3 Column Cards) -->
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <i data-lucide="trash" class="w-5 h-5 text-emerald-600"></i>
+          The 3-Color Waste Segregation Rule (Mandatory under Municipal By-Laws)
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Green Bin -->
+          <div class="bg-white rounded-2xl border-2 border-emerald-500/40 p-6 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30">
+                <i data-lucide="apple" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Green Bin</span>
+                <h3 class="text-base font-black text-slate-900">Wet / Organic Waste</h3>
+              </div>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">Biodegradable organic waste that can be converted into natural compost or bio-gas.</p>
+            <div class="space-y-1.5 text-xs text-slate-700 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 mb-4">
+              <p class="font-bold text-emerald-950 mb-1">What to put in:</p>
+              <p>&bull; Fruit & vegetable peels</p>
+              <p>&bull; Cooked food leftovers, rice & rotis</p>
+              <p>&bull; Tea bags & coffee grounds</p>
+              <p>&bull; Garden dry leaves & flowers</p>
+              <p>&bull; Egg shells & bones</p>
+            </div>
+            <p class="text-[11px] text-emerald-800 font-semibold flex items-center gap-1">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+              Never put plastic polythene bags inside the green bin!
+            </p>
+          </div>
+
+          <!-- Blue Bin -->
+          <div class="bg-white rounded-2xl border-2 border-sky-500/40 p-6 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-600/30">
+                <i data-lucide="package" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">Blue Bin</span>
+                <h3 class="text-base font-black text-slate-900">Dry / Recyclable Waste</h3>
+              </div>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">Inorganic items that can be recycled into new products at Material Recovery Facilities (MRF).</p>
+            <div class="space-y-1.5 text-xs text-slate-700 bg-sky-50/50 p-3 rounded-xl border border-sky-100 mb-4">
+              <p class="font-bold text-sky-950 mb-1">What to put in:</p>
+              <p>&bull; Newspapers & cardboard cartons</p>
+              <p>&bull; Plastic bottles (rinsed & crushed)</p>
+              <p>&bull; Milk pouches (rinsed with water)</p>
+              <p>&bull; Glass bottles & metal tin cans</p>
+              <p>&bull; Tetrapak juice cartons</p>
+            </div>
+            <p class="text-[11px] text-sky-800 font-semibold flex items-center gap-1">
+              <i data-lucide="check" class="w-3.5 h-3.5"></i>
+              Always ensure items are rinsed clean and dry!
+            </p>
+          </div>
+
+          <!-- Red Bin -->
+          <div class="bg-white rounded-2xl border-2 border-rose-500/40 p-6 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/30">
+                <i data-lucide="skull" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">Red / Black Bin</span>
+                <h3 class="text-base font-black text-slate-900">Hazardous & Sanitary</h3>
+              </div>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">Toxic chemicals, electronic waste, and sanitary items requiring specialized incineration.</p>
+            <div class="space-y-1.5 text-xs text-slate-700 bg-rose-50/50 p-3 rounded-xl border border-rose-100 mb-4">
+              <p class="font-bold text-rose-950 mb-1">What to put in:</p>
+              <p>&bull; Expired medicines & syringes</p>
+              <p>&bull; Batteries & cell phone batteries</p>
+              <p>&bull; Diapers & sanitary pads (wrap in paper with red X)</p>
+              <p>&bull; CFL bulbs & tube lights (mercury)</p>
+              <p>&bull; Paint cans, chemicals & pesticides</p>
+            </div>
+            <p class="text-[11px] text-rose-800 font-semibold flex items-center gap-1">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              Wrap broken glass in paper to protect sweepers.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Interactive "Which Bin Does It Belong To?" Classifier -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="max-w-2xl">
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="search-check" class="w-5 h-5 text-emerald-600"></i>
+            "Which Bin Does It Belong To?" Smart Classifier
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Type any household item below to instantly discover which bin to use and how to prepare it before disposal:
+          </p>
+
+          <div class="mt-4 relative">
+            <input type="text" id="wasteItemSearch" placeholder="Type an item (e.g. Pizza Box, Milk Pouch, Battery, Broken Glass, Banana Peel)..."
+              class="w-full px-4 py-3 pl-10 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-xs" />
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 mt-3">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Try:</span>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Pizza Box</button>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Milk Pouch</button>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Battery</button>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Broken Glass</button>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Banana Peel</button>
+            <button class="tag-waste-pill px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-lg">Expired Medicine</button>
+          </div>
+
+          <div id="wasteLookupResult" class="hidden mt-4"></div>
+        </div>
+      </div>
+
+      <!-- Penalties & Quiz -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Nagar Nigam By-Laws & Penalties -->
+        <div class="lg:col-span-6 bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 class="text-base font-bold text-rose-400 flex items-center gap-2 mb-3">
+            <i data-lucide="gavel" class="w-5 h-5"></i>
+            Nagar Nigam By-Laws & Strict Civic Penalties
+          </h3>
+          <p class="text-xs text-slate-300 mb-5">
+            As notified under the Environment Protection Act & Municipal Solid Waste Rules:
+          </p>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start justify-between gap-3">
+              <div>
+                <strong class="text-white block">Open Garbage / Leaf Burning</strong>
+                <p class="text-slate-400 text-[11px]">Releases toxic carcinogenic emissions</p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 whitespace-nowrap">₹5,000 Fine</span>
+            </div>
+
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start justify-between gap-3">
+              <div>
+                <strong class="text-white block">Littering or Open Dumping on Roads</strong>
+                <p class="text-slate-400 text-[11px]">Dumping waste outside community bins</p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 whitespace-nowrap">₹1,000 Fine</span>
+            </div>
+
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start justify-between gap-3">
+              <div>
+                <strong class="text-white block">Failure to Segregate Waste at Source</strong>
+                <p class="text-slate-400 text-[11px]">Mixing wet, dry, and sanitary waste</p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 whitespace-nowrap">Refusal of Pickup</span>
+            </div>
+
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex items-start justify-between gap-3">
+              <div>
+                <strong class="text-white block">Single-Use Plastic Ban Violation</strong>
+                <p class="text-slate-400 text-[11px]">Using banned plastic bags below 120 microns</p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 whitespace-nowrap">₹2,500 Fine</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Swachh Citizen Quiz -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="award" class="w-5 h-5 text-emerald-600"></i>
+                Swachh Citizen Knowledge Quiz
+              </h3>
+              <span id="quizProgressText" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                Question 1 of 5
+              </span>
+            </div>
+
+            <div id="quizQuestionContainer" class="space-y-4">
+              <h4 id="quizQuestionText" class="text-sm font-bold text-slate-800">
+                Where should you throw rinsed milk packets and plastic bottles?
+              </h4>
+              <div id="quizOptionsContainer" class="space-y-2"></div>
+              <div id="quizExplanationBox" class="hidden"></div>
+            </div>
+
+            <div id="quizResultContainer" class="hidden text-center py-6 space-y-4">
+              <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="trophy" class="w-8 h-8"></i>
+              </div>
+              <div>
+                <h4 class="text-lg font-black text-slate-900">Quiz Completed!</h4>
+                <p class="text-xs text-slate-500 mt-1">Your Segregation Score: <strong id="quizFinalScore" class="text-emerald-700 font-mono text-sm">5 / 5</strong></p>
+              </div>
+              <div id="quizBadgeFeedback"></div>
+              <button id="quizRestartBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all">
+                Retake Quiz
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 mt-4 flex justify-end">
+            <button id="quizNextBtn" class="hidden px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+              Next Question <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-800">Swachh Nagar &bull; Nagar Nigam Portal</span>
+        <span>&copy; 2026 Municipal Corporation of India. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 text-[11px]">
+        <a href="#" onclick="window.app.navigateTo('report'); return false;" class="hover:text-emerald-600">Report Waste</a>
+        <a href="#" onclick="window.app.navigateTo('tracking'); return false;" class="hover:text-emerald-600">Track Grievance</a>
+        <a href="#" onclick="window.app.navigateTo('awareness'); return false;" class="hover:text-emerald-600">Waste Guidelines</a>
+        <a href="tel:18001805151" class="font-bold text-emerald-700">Toll-Free: 1800-180-5151</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= MODALS & POPUPS ================= -->
+
+  <!-- 1. LIVE CAMERA MODAL (Viewfinder, Shutter & Flip) -->
+  <div id="liveCameraModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative text-white">
+      <button onclick="closeLiveCamera()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/80 hover:bg-slate-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-rose-400">Live Camera Viewfinder</h3>
+      </div>
+
+      <!-- Live Video Feed Container -->
+      <div class="relative overflow-hidden rounded-2xl bg-black border border-slate-800 aspect-video flex items-center justify-center">
+        <video id="liveCameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div id="cameraFlashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none"></div>
+        <div class="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-black/60 text-[10px] font-mono text-emerald-400 backdrop-blur-xs flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE FEED
+        </div>
+      </div>
+      <canvas id="liveCameraCanvas" class="hidden"></canvas>
+
+      <!-- Camera Action Controls -->
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <button type="button" onclick="switchCameraFacing()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i> Flip Camera
+        </button>
+
+        <button type="button" onclick="snapPhoto()" class="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/30 flex items-center gap-2 scale-105 active:scale-95 transition-all">
+          <i data-lucide="camera" class="w-4 h-4"></i> SNAP PHOTO (SHUTTER)
+        </button>
+
+        <button type="button" onclick="closeLiveCamera()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. AUTH MODAL (Login & Register) -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="Auth.closeAuthModal()" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex border-b border-slate-200 mb-6">
+        <button id="tabLoginBtn" onclick="Auth.switchAuthTab('login')" class="flex-1 py-3 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600">
+          User Sign In
+        </button>
+        <button id="tabRegisterBtn" onclick="Auth.switchAuthTab('register')" class="flex-1 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600">
+          Register Citizen
+        </button>
+      </div>
+
+      <!-- Login Tab Content -->
+      <div id="loginTabContent" class="space-y-4">
+        <div class="text-center mb-4">
+          <h3 class="text-lg font-bold text-slate-900">Welcome to Swachh Nagar</h3>
+          <p class="text-xs text-slate-500">Sign in to report waste or manage municipal operations</p>
+        </div>
+
+        <form id="loginForm" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email or Mobile Number</label>
+            <input type="text" id="loginIdentifier" required placeholder="ayush@gmail.com or 9876543210" value="ayush@gmail.com"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" value="password123"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all">
+            Sign In to Account
+          </button>
+        </form>
+
+        <div class="mt-4 pt-4 border-t border-slate-100">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Quick Demo Accounts:</p>
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <button onclick="document.getElementById('loginIdentifier').value='ayush@gmail.com'; document.getElementById('loginPassword').value='password123'; Auth.handleLogin();" 
+              class="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left">
+              <span class="font-bold block text-slate-800">Citizen</span>
+              <span class="text-slate-500">Ayush Gupta</span>
+            </button>
+            <button onclick="document.getElementById('loginIdentifier').value='officer@nagarnigam.gov.in'; document.getElementById('loginPassword').value='admin'; Auth.handleLogin();" 
+              class="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left">
+              <span class="font-bold block text-slate-800">Ward Officer</span>
+              <span class="text-slate-500">Dr. Rajesh Sharma</span>
+            </button>
+            <button onclick="document.getElementById('loginIdentifier').value='ramesh@nagarnigam.gov.in'; document.getElementById('loginPassword').value='worker'; Auth.handleLogin();" 
+              class="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left">
+              <span class="font-bold block text-slate-800">Sweeper</span>
+              <span class="text-slate-500">Ramesh Kumar</span>
+            </button>
+            <button onclick="document.getElementById('loginIdentifier').value='commissioner@nagarnigam.gov.in'; document.getElementById('loginPassword').value='admin'; Auth.handleLogin();" 
+              class="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left">
+              <span class="font-bold block text-slate-800">Commissioner</span>
+              <span class="text-slate-500">City Admin</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Register Tab Content -->
+      <div id="registerTabContent" class="hidden space-y-4">
+        <div class="text-center mb-2">
+          <h3 class="text-lg font-bold text-slate-900">Citizen Registration</h3>
+          <p class="text-xs text-slate-500">Create an account to track civic issues in your ward</p>
+        </div>
+
+        <form id="registerForm" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
+            <input type="text" id="regName" required placeholder="Ayush Gupta"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number *</label>
+              <input type="tel" id="regPhone" required placeholder="9876543210"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Email ID *</label>
+              <input type="email" id="regEmail" required placeholder="ayush@gmail.com"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Residential Nagar Nigam Ward *</label>
+            <select id="regWard" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Colony / House Address</label>
+            <input type="text" id="regAddress" placeholder="Flat 402, Civil Lines"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Create Password *</label>
+            <input type="password" id="regPassword" required placeholder="At least 6 characters"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all">
+            Create Citizen Profile
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. REPORT CONFIRMATION MODAL -->
+  <div id="complaintSuccessModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
+      <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <i data-lucide="check-check" class="w-8 h-8"></i>
+      </div>
+      
+      <h3 class="text-xl font-black text-slate-900">Grievance Successfully Registered!</h3>
+      <p class="text-xs text-slate-500 mt-1">Your report has been forwarded to the local Nagar Nigam Ward Desk.</p>
+
+      <div class="my-5 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <span class="text-slate-500">Complaint Ticket ID:</span>
+          <span id="confirmComplaintId" class="font-mono font-bold text-slate-900 text-sm">NN-2026-XXXX</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Routed Ward:</span>
+          <span id="confirmWardName" class="font-semibold text-slate-800 text-right truncate max-w-[200px]">-</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Zonal Sanitary Officer:</span>
+          <span id="confirmOfficerName" class="font-semibold text-slate-800">-</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Waste Category:</span>
+          <span id="confirmWasteType" class="font-semibold text-slate-800">-</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Location:</span>
+          <span id="confirmAddress" class="font-semibold text-slate-800 text-right truncate max-w-[200px]">-</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button id="btnTrackComplaintNow" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="route" class="w-4 h-4"></i> Track Complaint Live
+        </button>
+        <button onclick="Complaints.closeConfirmationModal()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all">
+          Done / Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. OFFICER DISPATCH MODAL -->
+  <div id="sweeperDispatchModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="Complaints.closeDispatchModal()" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+          <i data-lucide="send" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Issue Sweeper Instructions & Send Pickup Request</h3>
+          <p class="text-xs text-slate-500">Nagar Nigam Ward Officer Dispatch Authority</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-5 flex gap-4 items-start">
+        <img id="modalComplaintPhoto" src="" alt="Waste" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-xs flex-shrink-0" />
+        <div class="text-xs space-y-1">
+          <h4 id="modalComplaintTitle" class="font-bold text-slate-800 text-sm">-</h4>
+          <p id="modalComplaintLocation" class="text-slate-600 flex items-center gap-1">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-rose-500"></i> -
+          </p>
+          <p id="modalComplaintDesc" class="text-slate-500 italic line-clamp-2">"-"</p>
+        </div>
+      </div>
+
+      <form id="sweeperDispatchForm" class="space-y-4">
+        <input type="hidden" id="dispatchComplaintId" value="" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            1. Assign Nagar Nigam Sweeper / Crew Lead <span class="text-rose-500">*</span>
+          </label>
+          <select id="dispatchSweeperSelect" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            2. Priority Allocation
+          </label>
+          <select id="dispatchPriority" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <option value="High">High (Immediate 2-Hour SLA Dispatch)</option>
+            <option value="Medium" selected>Medium (Standard 4-Hour Collection)</option>
+            <option value="Low">Low (Scheduled Next Morning Route)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            3. Official Instruction for the Sweeper <span class="text-rose-500">*</span>
+          </label>
+          <textarea id="dispatchInstruction" rows="3" required
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+          <p class="text-[10px] text-slate-400 mt-1">This instruction will appear directly on the sweeper's mobile task screen and in citizen tracking.</p>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button type="button" onclick="Complaints.closeDispatchModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
+            <i data-lucide="send" class="w-4 h-4"></i> Dispatch Sweeper & Send Pickup Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. SWEEPER RESOLUTION MODAL (With Live Camera Option) -->
+  <div id="sweeperResolveModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative">
+      <button onclick="Complaints.closeSweeperResolveModal()" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="camera-check" class="w-6 h-6"></i>
+        </div>
+        <h3 id="resolveModalTitle" class="text-base font-bold text-slate-900">Fulfill Task & Upload Proof</h3>
+        <p class="text-xs text-slate-500">Provide resolution photo and operational cleanup notes</p>
+      </div>
+
+      <form id="sweeperResolveForm" class="space-y-4">
+        <input type="hidden" id="resolveComplaintId" value="" />
+
+        <div class="grid grid-cols-2 gap-3 text-left">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Before Cleaning:</span>
+            <img id="resolveBeforePhotoPreview" src="" alt="Before" class="w-full h-24 object-cover rounded-xl border border-slate-200 mt-1" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-emerald-600 uppercase">After Proof:</span>
+              <button type="button" onclick="openLiveCamera('sweeper')" class="text-[10px] font-bold text-rose-600 underline">Live Camera</button>
+            </div>
+            <img id="resolveAfterPreviewImg" src="" alt="After" class="w-full h-24 object-cover rounded-xl border-2 border-emerald-400 mt-1" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+            Waste Collected (Approx Metric Tons)
+          </label>
+          <input type="number" step="0.1" id="resolveWasteQuantity" value="1.2"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+            Resolution Notes
+          </label>
+          <textarea id="resolveNotes" rows="2" placeholder="e.g. Cleared all overflowing waste, washed pavement, and sprinkled lime powder..."
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i> Mark Resolved & Send Proof to Citizen
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- ================= UNIFIED MERGED JAVASCRIPT ================= -->
+  <script>
+    /* =========================================================================
+       1. DATA STORE & LOCALSTORAGE PERSISTENCE
+       ========================================================================= */
+    const STORAGE_KEYS = {
+      USERS: 'swachh_nagar_users',
+      CURRENT_USER: 'swachh_nagar_current_user',
+      COMPLAINTS: 'swachh_nagar_complaints',
+      SWEEPERS: 'swachh_nagar_sweepers',
+      WARDS: 'swachh_nagar_wards',
+      ACTIVITY_LOG: 'swachh_nagar_activity'
+    };
+
+    const INITIAL_WARDS = [
+      { id: 'W-01', name: 'Ward 1 - Hazratganj / Central Zone', officer: 'Er. Anil Verma', phone: '0522-220011', email: 'ward1@nagarnigam.gov.in', lat: 26.8524, lng: 80.9421 },
+      { id: 'W-02', name: 'Ward 2 - Shanti Nagar / North Zone', officer: 'Dr. Meena Kapoor', phone: '0522-220022', email: 'ward2@nagarnigam.gov.in', lat: 26.8720, lng: 80.9310 },
+      { id: 'W-03', name: 'Ward 3 - Gandhi Chowk / South Zone', officer: 'Shri Sanjay Yadav', phone: '0522-220033', email: 'ward3@nagarnigam.gov.in', lat: 26.8340, lng: 80.9250 },
+      { id: 'W-04', name: 'Ward 4 - Civil Lines / East Zone', officer: 'Dr. Rajesh Sharma', phone: '0522-220044', email: 'ward4@nagarnigam.gov.in', lat: 26.8610, lng: 80.9580 },
+      { id: 'W-05', name: 'Ward 5 - Subhash Nagar / West Zone', officer: 'Er. Rohit Tiwari', phone: '0522-220055', email: 'ward5@nagarnigam.gov.in', lat: 26.8450, lng: 80.9120 }
+    ];
+
+    const INITIAL_SWEEPERS = [
+      { id: 'SW-101', name: 'Ramesh Kumar', phone: '+91 94150 11223', wardId: 'W-04', wardName: 'Ward 4 - Civil Lines', vehicle: 'Auto Tipper (UP-32-BW-4821)', status: 'Available', tasksCompleted: 48, rating: 4.8 },
+      { id: 'SW-102', name: 'Sita Devi', phone: '+91 94150 33445', wardId: 'W-02', wardName: 'Ward 2 - Shanti Nagar', vehicle: 'Compactor Van (UP-32-CV-1092)', status: 'On Duty', tasksCompleted: 62, rating: 4.9 },
+      { id: 'SW-103', name: 'Vikram Singh', phone: '+91 98390 55667', wardId: 'W-05', wardName: 'Ward 5 - Subhash Nagar', vehicle: 'Bio-waste Van (UP-32-BW-9901)', status: 'Available', tasksCompleted: 35, rating: 4.7 },
+      { id: 'SW-104', name: 'Rajesh Meena', phone: '+91 98891 77889', wardId: 'W-03', wardName: 'Ward 3 - Gandhi Chowk', vehicle: 'Tractor Trolley (UP-32-TT-4412)', status: 'Available', tasksCompleted: 53, rating: 4.6 },
+      { id: 'SW-105', name: 'Sunita Rawat', phone: '+91 94520 88990', wardId: 'W-01', wardName: 'Ward 1 - Hazratganj', vehicle: 'Electric E-Cart (UP-32-EC-0055)', status: 'Available', tasksCompleted: 41, rating: 4.8 }
+    ];
+
+    const INITIAL_USERS = [
+      { id: 'USR-01', name: 'Ayush Gupta', email: 'ayush@gmail.com', password: 'password123', phone: '9876543210', role: 'citizen', ward: 'Ward 4 - Civil Lines / East Zone', address: 'Flat 402, Civil Lines' },
+      { id: 'USR-02', name: 'Dr. Rajesh Sharma (Zonal Sanitary Inspector)', email: 'officer@nagarnigam.gov.in', password: 'admin', phone: '0522-220044', role: 'officer', ward: 'Ward 4 - Civil Lines / East Zone', department: 'Nagar Nigam Health Wing' },
+      { id: 'USR-03', name: 'Ramesh Kumar (Sanitation Crew Lead)', email: 'ramesh@nagarnigam.gov.in', password: 'worker', phone: '+91 94150 11223', role: 'sweeper', ward: 'Ward 4 - Civil Lines / East Zone', sweeperId: 'SW-101' },
+      { id: 'USR-04', name: 'Municipal Commissioner', email: 'commissioner@nagarnigam.gov.in', password: 'admin', phone: '0522-221100', role: 'admin', department: 'City Municipal HQ' }
+    ];
+
+    const SAMPLE_PHOTOS = {
+      overflowing_bin: 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?auto=format&fit=crop&w=700&q=80',
+      street_garbage: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=700&q=80',
+      plastic_dump: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=700&q=80',
+      cleaned_street: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=700&q=80',
+      cleaned_bin: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=700&q=80'
+    };
+
+    const INITIAL_COMPLAINTS = [
+      {
+        id: 'NN-2026-8492',
+        citizenName: 'Ayush Gupta',
+        citizenPhone: '9876543210',
+        citizenEmail: 'ayush@gmail.com',
+        wardId: 'W-04',
+        wardName: 'Ward 4 - Civil Lines / East Zone',
+        wasteType: 'Overflowing Community Dustbin',
+        severity: 'High',
+        address: 'Near Civil Lines Metro Station Gate 2, Park Road',
+        landmark: 'Opposite State Bank ATM',
+        description: 'The green community dumpster has been overflowing for the last 48 hours. Stray cattle and dogs are scattering garbage across the main walking pathway.',
+        photoBefore: SAMPLE_PHOTOS.overflowing_bin,
+        photoAfter: null,
+        status: 'Sweeper Dispatched',
+        createdAt: '2026-09-29T09:30:00Z',
+        verifiedAt: '2026-09-29T10:15:00Z',
+        assignedOfficer: 'Dr. Rajesh Sharma',
+        officerInstruction: 'Deploy hydraulic tipper truck UP-32-BW-4821 immediately. Ensure waste is cleared from surrounding footpath and disinfect with calcium hypochlorite (lime powder) immediately.',
+        assignedSweeperId: 'SW-101',
+        assignedSweeperName: 'Ramesh Kumar',
+        sweeperPhone: '+91 94150 11223',
+        vehicleNumber: 'Auto Tipper (UP-32-BW-4821)',
+        estimatedResolutionTime: '2026-09-30T14:00:00Z',
+        resolvedAt: null,
+        citizenRating: null,
+        citizenFeedback: null,
+        lat: 26.8615,
+        lng: 80.9575
+      },
+      {
+        id: 'NN-2026-8450',
+        citizenName: 'Priya Sharma',
+        citizenPhone: '98220 91823',
+        citizenEmail: 'priya.s@yahoo.com',
+        wardId: 'W-02',
+        wardName: 'Ward 2 - Shanti Nagar / North Zone',
+        wasteType: 'Illegal Roadside Garbage Dump',
+        severity: 'Medium',
+        address: 'Lane 4, Near Sabzi Mandi Corner, Shanti Nagar',
+        landmark: 'Behind Community Temple',
+        description: 'Rotting vegetable waste and single-use plastic bags piled up by vendors during the evening market. Bad foul smell spreading into residences.',
+        photoBefore: SAMPLE_PHOTOS.street_garbage,
+        photoAfter: SAMPLE_PHOTOS.cleaned_street,
+        status: 'Resolved',
+        createdAt: '2026-09-28T14:20:00Z',
+        verifiedAt: '2026-09-28T15:00:00Z',
+        assignedOfficer: 'Dr. Meena Kapoor',
+        officerInstruction: 'Dispatch evening compactor van. Clean the wet vegetable compost and clear roadside drain grates.',
+        assignedSweeperId: 'SW-102',
+        assignedSweeperName: 'Sita Devi',
+        sweeperPhone: '+91 94150 33445',
+        vehicleNumber: 'Compactor Van (UP-32-CV-1092)',
+        resolvedAt: '2026-09-28T17:45:00Z',
+        resolutionNotes: 'Site completely cleared and deep swept. 1.2 metric tons of mixed waste sent to central MRF plant. Vendor warned against dumping.',
+        citizenRating: 5,
+        citizenFeedback: 'Spectacular turnaround! The Nagar Nigam team arrived in 2 hours and left the entire street spotless. Thank you Sita Devi and Ward 2 office!',
+        lat: 26.8718,
+        lng: 80.9325
+      },
+      {
+        id: 'NN-2026-8511',
+        citizenName: 'Vikas Malhotra',
+        citizenPhone: '97992 44331',
+        citizenEmail: 'vikas.m@gmail.com',
+        wardId: 'W-03',
+        wardName: 'Ward 3 - Gandhi Chowk / South Zone',
+        wasteType: 'Construction & Demolition Debris',
+        severity: 'Medium',
+        address: 'Gandhi Chowk Main Circle, Near Clock Tower',
+        landmark: 'Opposite City Library',
+        description: 'Renovation debris dumped overnight on pedestrian footpath obstructing wheelchair access.',
+        photoBefore: SAMPLE_PHOTOS.plastic_dump,
+        photoAfter: null,
+        status: 'Pending Verification',
+        createdAt: '2026-09-30T07:15:00Z',
+        verifiedAt: null,
+        assignedOfficer: null,
+        officerInstruction: null,
+        assignedSweeperId: null,
+        assignedSweeperName: null,
+        sweeperPhone: null,
+        vehicleNumber: null,
+        resolvedAt: null,
+        citizenRating: null,
+        citizenFeedback: null,
+        lat: 26.8345,
+        lng: 80.9248
+      }
+    ];
+
+    class Store {
+      constructor() { this.init(); }
+      init() {
+        if (!localStorage.getItem(STORAGE_KEYS.WARDS)) localStorage.setItem(STORAGE_KEYS.WARDS, JSON.stringify(INITIAL_WARDS));
+        if (!localStorage.getItem(STORAGE_KEYS.SWEEPERS)) localStorage.setItem(STORAGE_KEYS.SWEEPERS, JSON.stringify(INITIAL_SWEEPERS));
+        if (!localStorage.getItem(STORAGE_KEYS.USERS)) localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
+        if (!localStorage.getItem(STORAGE_KEYS.COMPLAINTS)) localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(INITIAL_COMPLAINTS));
+        if (!localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(INITIAL_USERS[0]));
+      }
+      getUsers() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]'); }
+      saveUser(user) {
+        const u = this.getUsers(); u.push(user);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(u));
+      }
+      getCurrentUser() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'null'); }
+      setCurrentUser(user) {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+        window.dispatchEvent(new CustomEvent('auth:change', { detail: user }));
+      }
+      logout() {
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+        window.dispatchEvent(new CustomEvent('auth:change', { detail: null }));
+      }
+      getComplaints() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMPLAINTS) || '[]'); }
+      getComplaintById(id) {
+        return this.getComplaints().find(c => c.id.toLowerCase() === id.toLowerCase().trim());
+      }
+      saveComplaint(complaint) {
+        const list = this.getComplaints();
+        list.unshift(complaint);
+        localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(list));
+        this.logActivity(`New complaint: ${complaint.id} (${complaint.wasteType}) in ${complaint.wardName}`);
+        window.dispatchEvent(new CustomEvent('complaints:update', { detail: complaint }));
+        return complaint;
+      }
+      updateComplaint(id, updates) {
+        const list = this.getComplaints();
+        const idx = list.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          list[idx] = { ...list[idx], ...updates };
+          localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(list));
+          this.logActivity(`Complaint updated: ${id} -> Status: ${updates.status || list[idx].status}`);
+          window.dispatchEvent(new CustomEvent('complaints:update', { detail: list[idx] }));
+          return list[idx];
+        }
+        return null;
+      }
+      getWards() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.WARDS) || '[]'); }
+      getSweepers() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.SWEEPERS) || '[]'); }
+      logActivity(text) {
+        const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) || '[]');
+        logs.unshift({ id: 'ACT-' + Date.now(), text, timestamp: new Date().toISOString() });
+        if (logs.length > 50) logs.pop();
+        localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(logs));
+      }
+      getActivityLogs() { return JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) || '[]'); }
+      resetDemoData() {
+        localStorage.setItem(STORAGE_KEYS.WARDS, JSON.stringify(INITIAL_WARDS));
+        localStorage.setItem(STORAGE_KEYS.SWEEPERS, JSON.stringify(INITIAL_SWEEPERS));
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
+        localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(INITIAL_COMPLAINTS));
+        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(INITIAL_USERS[0]));
+        window.location.reload();
+      }
+    }
+    window.appStore = new Store();
+
+    /* =========================================================================
+       2. AUTHENTICATION & MULTI-ROLE SWITCHER
+       ========================================================================= */
+    const Auth = {
+      init() {
+        this.bindEvents();
+        this.renderCurrentUser();
+      },
+      bindEvents() {
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(); });
+
+        const regForm = document.getElementById('registerForm');
+        if (regForm) regForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleRegister(); });
+
+        const switcher = document.getElementById('quickRoleSwitcher');
+        if (switcher) switcher.addEventListener('change', (e) => { this.switchRole(e.target.value); });
+
+        const logout = document.getElementById('logoutBtn');
+        if (logout) logout.addEventListener('click', () => { this.handleLogout(); });
+
+        window.addEventListener('auth:change', (e) => {
+          this.renderCurrentUser(e.detail);
+          if (window.app) window.app.applyRolePermissions();
+        });
+      },
+      handleLogin() {
+        const id = document.getElementById('loginIdentifier').value.trim();
+        const pwd = document.getElementById('loginPassword').value;
+        const users = window.appStore.getUsers();
+        const user = users.find(u => (u.email.toLowerCase() === id.toLowerCase() || u.phone === id) && u.password === pwd);
+        if (user) {
+          window.appStore.setCurrentUser(user);
+          this.showToast(`Welcome back, ${user.name}!`, 'success');
+          this.closeAuthModal();
+        } else {
+          this.showToast('Invalid credentials. Check email/phone or password.', 'error');
+        }
+      },
+      handleRegister() {
+        const name = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const ward = document.getElementById('regWard').value;
+        const address = document.getElementById('regAddress').value.trim();
+        const password = document.getElementById('regPassword').value;
+
+        if (!name || !phone || !email || !ward || !password) {
+          this.showToast('Please fill all mandatory fields.', 'warning');
+          return;
+        }
+        const newUser = { id: 'USR-' + Math.floor(1000 + Math.random() * 9000), name, phone, email, role: 'citizen', ward, address, password };
+        window.appStore.saveUser(newUser);
+        window.appStore.setCurrentUser(newUser);
+        this.showToast(`Registered successfully! Welcome, ${newUser.name}.`, 'success');
+        this.closeAuthModal();
+      },
+      switchRole(roleType) {
+        const users = window.appStore.getUsers();
+        let targetUser = users.find(u => u.role === roleType) || users[0];
+        if (targetUser) {
+          window.appStore.setCurrentUser(targetUser);
+          this.showToast(`Switched view to: ${targetUser.name} (${targetUser.role.toUpperCase()})`, 'info');
+        }
+      },
+      handleLogout() {
+        window.appStore.logout();
+        this.showToast('Logged out successfully.', 'info');
+      },
+      renderCurrentUser(user = window.appStore.getCurrentUser()) {
+        const nameEl = document.getElementById('navUserName');
+        const roleEl = document.getElementById('navUserRole');
+        const switcher = document.getElementById('quickRoleSwitcher');
+        if (user) {
+          if (nameEl) nameEl.textContent = user.name;
+          if (roleEl) {
+            const labels = { citizen: 'Citizen Portal', officer: 'Nagar Nigam Ward Officer', sweeper: 'Sanitation Worker / Sweeper', admin: 'Municipal Commissioner (Admin)' };
+            roleEl.textContent = labels[user.role] || user.role;
+          }
+          if (switcher) switcher.value = user.role;
+        }
+      },
+      openAuthModal(tab = 'login') {
+        const modal = document.getElementById('authModal');
+        if (!modal) return;
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        this.switchAuthTab(tab);
+      },
+      closeAuthModal() {
+        const modal = document.getElementById('authModal');
+        if (!modal) return;
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+      },
+      switchAuthTab(tab) {
+        const lBtn = document.getElementById('tabLoginBtn');
+        const rBtn = document.getElementById('tabRegisterBtn');
+        const lContent = document.getElementById('loginTabContent');
+        const rContent = document.getElementById('registerTabContent');
+        if (tab === 'login') {
+          lBtn.className = 'flex-1 py-3 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600';
+          rBtn.className = 'flex-1 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600';
+          lContent.classList.remove('hidden'); rContent.classList.add('hidden');
+        } else {
+          rBtn.className = 'flex-1 py-3 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600';
+          lBtn.className = 'flex-1 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600';
+          rContent.classList.remove('hidden'); lContent.classList.add('hidden');
+        }
+      },
+      showToast(msg, type = 'info') {
+        if (window.toastNotification) window.toastNotification(msg, type);
+      }
+    };
+    window.Auth = Auth;
+
+    /* =========================================================================
+       3. LIVE CAMERA & GPS LOCATION HANDLERS
+       ========================================================================= */
+    let cameraStream = null;
+    let currentFacingMode = 'environment';
+
+    async function openLiveCamera(target = 'citizen') {
+      const modal = document.getElementById('liveCameraModal');
+      const video = document.getElementById('liveCameraVideo');
+      modal.dataset.cameraTarget = target;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera is not supported or not accessible on this device/protocol.');
+        }
+        stopLiveCamera();
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = cameraStream;
+        video.play();
+        if (window.lucide) window.lucide.createIcons();
+      } catch (err) {
+        console.warn('Camera access issue:', err);
+        alert('Could not access live camera: ' + (err.message || 'Please enable camera permissions. You can also use the File Upload or Demo Photo buttons!'));
+        closeLiveCamera();
+      }
+    }
+
+    function switchCameraFacing() {
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+      const target = document.getElementById('liveCameraModal').dataset.cameraTarget || 'citizen';
+      openLiveCamera(target);
+    }
+
+    function snapPhoto() {
+      const video = document.getElementById('liveCameraVideo');
+      const canvas = document.getElementById('liveCameraCanvas');
+      const modal = document.getElementById('liveCameraModal');
+      const target = modal.dataset.cameraTarget || 'citizen';
+
+      if (!video || !video.videoWidth) {
+        alert('Camera stream initializing, please wait a moment...');
+        return;
+      }
+
+      // Visual flash animation
+      const flash = document.getElementById('cameraFlashOverlay');
+      if (flash) {
+        flash.classList.add('shutter-flash');
+        setTimeout(() => flash.classList.remove('shutter-flash'), 300);
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const snapshotUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+      if (target === 'citizen') {
+        Complaints.setPhotoPreview(snapshotUrl);
+        Auth.showToast('Live photo captured successfully!', 'success');
+      } else if (target === 'sweeper') {
+        document.getElementById('resolveAfterPreviewImg').src = snapshotUrl;
+        Complaints.sweeperAfterPhotoUrl = snapshotUrl;
+        Auth.showToast('Cleaned site proof photo snapped!', 'success');
+      }
+
+      setTimeout(() => {
+        closeLiveCamera();
+      }, 200);
+    }
+
+    function closeLiveCamera() {
+      stopLiveCamera();
+      const modal = document.getElementById('liveCameraModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function stopLiveCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+    }
+
+    // Live GPS Location with Reverse Geocoding
+    function fetchRealGpsLocation() {
+      const btn = document.getElementById('detectLocationBtn');
+      const statusBox = document.getElementById('liveGpsStatus');
+
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Getting GPS...`;
+      if (window.lucide) window.lucide.createIcons();
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = Math.round(position.coords.accuracy || 15);
+
+          document.getElementById('reportLat').value = lat;
+          document.getElementById('reportLng').value = lng;
+
+          if (statusBox) {
+            statusBox.classList.remove('hidden');
+            statusBox.innerHTML = `
+              <div class="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-950 text-xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span><strong>Live GPS Locked:</strong> Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)} (&plusmn;${accuracy}m accuracy)</span>
+              </div>
+            `;
+          }
+
+          // Reverse geocode via OpenStreetMap Nominatim
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+            const data = await res.json();
+            if (data && data.address) {
+              const a = data.address;
+              const street = [a.road, a.suburb || a.neighbourhood, a.city || a.town || a.county].filter(Boolean).join(', ');
+              if (street) document.getElementById('reportAddress').value = street;
+              if (a.amenity || a.postcode) document.getElementById('reportLandmark').value = `Near ${a.amenity || a.suburb || 'Pin: ' + a.postcode}`;
+            }
+          } catch (e) {
+            console.warn('Reverse geocode note:', e);
+            document.getElementById('reportAddress').value = `GPS Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          }
+
+          btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> GPS Locked!`;
+          if (window.lucide) window.lucide.createIcons();
+          Auth.showToast(`Real GPS locked (&plusmn;${accuracy}m precision)`, 'success');
+
+          setTimeout(() => {
+            btn.innerHTML = `<i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-700"></i> <span>📍 Get Live GPS Location</span>`;
+            if (window.lucide) window.lucide.createIcons();
+          }, 3500);
+        },
+        (error) => {
+          console.warn('GPS notice:', error);
+          btn.innerHTML = `<i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-700"></i> <span>📍 Get Live GPS Location</span>`;
+          if (window.lucide) window.lucide.createIcons();
+          Complaints.simulateDetectLocation();
+          Auth.showToast('Browser location access blocked. Switched to nearest Nagar Nigam Ward coordinates.', 'info');
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    }
+
+    /* =========================================================================
+       4. COMPLAINTS REPORTING, WARD ROUTING & OFFICER DISPATCH
+       ========================================================================= */
+    const Complaints = {
+      selectedPhotoUrl: null,
+      sweeperAfterPhotoUrl: null,
+      init() {
+        this.bindEvents();
+        this.populateWardDropdowns();
+      },
+      bindEvents() {
+        const form = document.getElementById('reportWasteForm');
+        if (form) form.addEventListener('submit', (e) => { e.preventDefault(); this.handleReportSubmit(); });
+
+        const wardSel = document.getElementById('reportWard');
+        if (wardSel) wardSel.addEventListener('change', (e) => { this.updateWardOfficeInfo(e.target.value); });
+
+        const fileInput = document.getElementById('reportPhotoFile');
+        if (fileInput) fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => { this.setPhotoPreview(event.target.result); };
+            reader.readAsDataURL(file);
+          }
+        });
+
+        document.querySelectorAll('.btn-demo-photo').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const key = e.currentTarget.dataset.photoKey;
+            this.setPhotoPreview(SAMPLE_PHOTOS[key] || SAMPLE_PHOTOS.overflowing_bin);
+          });
+        });
+
+        const dispatchForm = document.getElementById('sweeperDispatchForm');
+        if (dispatchForm) dispatchForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleSweeperDispatchSubmit(); });
+
+        const resolveForm = document.getElementById('sweeperResolveForm');
+        if (resolveForm) resolveForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleSweeperResolveSubmit(); });
+
+        window.addEventListener('complaints:update', () => {
+          this.renderOfficerComplaintsTable();
+          this.renderSweeperTasks();
+        });
+      },
+      populateWardDropdowns() {
+        const wards = window.appStore.getWards();
+        ['reportWard', 'regWard', 'filterOfficerWard'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const keepFirst = id === 'filterOfficerWard';
+          const firstOpt = keepFirst ? el.options[0] : null;
+          el.innerHTML = '';
+          if (keepFirst && firstOpt) el.appendChild(firstOpt);
+          wards.forEach(w => {
+            const opt = document.createElement('option');
+            opt.value = w.id; opt.textContent = w.name;
+            el.appendChild(opt);
+          });
+        });
+        const repWard = document.getElementById('reportWard');
+        if (repWard && repWard.value) this.updateWardOfficeInfo(repWard.value);
+      },
+      updateWardOfficeInfo(wardId) {
+        const ward = window.appStore.getWards().find(w => w.id === wardId);
+        const card = document.getElementById('wardNagarNigamCard');
+        if (!card) return;
+        if (ward) {
+          card.classList.remove('hidden');
+          card.innerHTML = `
+            <div class="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900">
+              <div class="p-2 bg-emerald-600 text-white rounded-lg flex-shrink-0">
+                <i data-lucide="building-2" class="w-4 h-4"></i>
+              </div>
+              <div class="flex-1">
+                <p class="font-bold text-emerald-800">Assigned Routing: Local Nagar Nigam Office</p>
+                <p class="mt-0.5"><span class="font-medium">Zone Desk:</span> ${ward.name}</p>
+                <p class="mt-0.5"><span class="font-medium">Sanitary Officer:</span> ${ward.officer} (<a href="tel:${ward.phone}" class="underline text-emerald-700">${ward.phone}</a>)</p>
+                <p class="text-[11px] text-emerald-600 mt-1 flex items-center gap-1">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                  Complaint routes directly to this officer's dispatch desk.
+                </p>
+              </div>
+            </div>
+          `;
+          if (window.lucide) window.lucide.createIcons();
+        }
+      },
+      setPhotoPreview(url) {
+        this.selectedPhotoUrl = url;
+        const pCont = document.getElementById('photoPreviewContainer');
+        const pImg = document.getElementById('photoPreviewImg');
+        const prompt = document.getElementById('photoUploadPrompt');
+        if (pCont && pImg) {
+          pImg.src = url;
+          pCont.classList.remove('hidden');
+          if (prompt) prompt.classList.add('hidden');
+        }
+      },
+      clearPhotoPreview() {
+        this.selectedPhotoUrl = null;
+        const pCont = document.getElementById('photoPreviewContainer');
+        const prompt = document.getElementById('photoUploadPrompt');
+        const fileInput = document.getElementById('reportPhotoFile');
+        if (pCont) pCont.classList.add('hidden');
+        if (prompt) prompt.classList.remove('hidden');
+        if (fileInput) fileInput.value = '';
+      },
+      simulateDetectLocation() {
+        const locs = [
+          { wardId: 'W-04', addr: 'Civil Lines Crossing, Near Metro Gate 2', landmark: 'Adjacent to Indian Post Office', lat: 26.8612, lng: 80.9578 },
+          { wardId: 'W-01', addr: 'Hazratganj Main Market, Opposite Cathedral', landmark: 'Near Mayfair Building', lat: 26.8524, lng: 80.9421 },
+          { wardId: 'W-02', addr: 'Shanti Nagar Chowk, Road No. 3', landmark: 'Near Durga Temple', lat: 26.8720, lng: 80.9310 }
+        ];
+        const sel = locs[Math.floor(Math.random() * locs.length)];
+        document.getElementById('reportWard').value = sel.wardId;
+        document.getElementById('reportAddress').value = sel.addr;
+        document.getElementById('reportLandmark').value = sel.landmark;
+        document.getElementById('reportLat').value = sel.lat;
+        document.getElementById('reportLng').value = sel.lng;
+        this.updateWardOfficeInfo(sel.wardId);
+      },
+      handleReportSubmit() {
+        const user = window.appStore.getCurrentUser();
+        const wardId = document.getElementById('reportWard').value;
+        const wasteType = document.getElementById('reportWasteType').value;
+        const severity = document.querySelector('input[name="severity"]:checked')?.value || 'Medium';
+        const address = document.getElementById('reportAddress').value.trim();
+        const landmark = document.getElementById('reportLandmark').value.trim();
+        const description = document.getElementById('reportDescription').value.trim();
+        const lat = parseFloat(document.getElementById('reportLat').value) || 26.8524;
+        const lng = parseFloat(document.getElementById('reportLng').value) || 80.9421;
+
+        if (!wardId || !wasteType || !address || !description) {
+          Auth.showToast('Please fill all required fields.', 'warning');
+          return;
+        }
+        const ward = window.appStore.getWards().find(w => w.id === wardId);
+        const complaint = {
+          id: 'NN-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+          citizenName: user ? user.name : 'Ayush Gupta',
+          citizenPhone: user ? user.phone : '9876543210',
+          citizenEmail: user ? user.email : 'ayush@gmail.com',
+          wardId,
+          wardName: ward ? ward.name : 'Central Nagar Nigam Ward',
+          wasteType,
+          severity,
+          address,
+          landmark,
+          description,
+          photoBefore: this.selectedPhotoUrl || SAMPLE_PHOTOS.overflowing_bin,
+          photoAfter: null,
+          status: 'Pending Verification',
+          createdAt: new Date().toISOString(),
+          verifiedAt: null,
+          assignedOfficer: ward ? ward.officer : 'Zonal Sanitary Inspector',
+          officerInstruction: null,
+          assignedSweeperId: null,
+          assignedSweeperName: null,
+          sweeperPhone: null,
+          vehicleNumber: null,
+          resolvedAt: null,
+          citizenRating: null,
+          citizenFeedback: null,
+          lat, lng
+        };
+
+        window.appStore.saveComplaint(complaint);
+        document.getElementById('reportWasteForm').reset();
+        this.clearPhotoPreview();
+
+        // Confirmation Modal
+        const modal = document.getElementById('complaintSuccessModal');
+        document.getElementById('confirmComplaintId').textContent = complaint.id;
+        document.getElementById('confirmWardName').textContent = complaint.wardName;
+        document.getElementById('confirmOfficerName').textContent = complaint.assignedOfficer;
+        document.getElementById('confirmWasteType').textContent = complaint.wasteType;
+        document.getElementById('confirmAddress').textContent = complaint.address;
+
+        const trackBtn = document.getElementById('btnTrackComplaintNow');
+        trackBtn.onclick = () => {
+          modal.classList.add('hidden'); modal.classList.remove('flex');
+          window.app.navigateTo('tracking');
+          window.Tracking.searchAndDisplayComplaint(complaint.id);
+        };
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+      },
+      closeConfirmationModal() {
+        const modal = document.getElementById('complaintSuccessModal');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      },
+      renderOfficerComplaintsTable() {
+        const tbody = document.getElementById('officerComplaintsTableBody');
+        if (!tbody) return;
+        const complaints = window.appStore.getComplaints();
+        const fWard = document.getElementById('filterOfficerWard')?.value || 'all';
+        const fStatus = document.getElementById('filterOfficerStatus')?.value || 'all';
+
+        const filtered = complaints.filter(c => {
+          const matchWard = fWard === 'all' || c.wardId === fWard;
+          const matchStatus = fStatus === 'all' || 
+            (fStatus === 'pending' && (c.status === 'Pending Verification' || c.status === 'Nagar Nigam Verified')) ||
+            (fStatus === 'dispatched' && (c.status === 'Sweeper Dispatched' || c.status === 'In Progress')) ||
+            (fStatus === 'resolved' && c.status === 'Resolved');
+          return matchWard && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No complaints matching filter.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(c => `
+          <tr class="hover:bg-slate-50 border-b border-slate-100 text-xs">
+            <td class="py-3 px-4 font-mono font-bold text-slate-800">${c.id}</td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <img src="${c.photoBefore}" class="w-9 h-9 object-cover rounded-lg border border-slate-200" />
+                <div>
+                  <p class="font-bold text-slate-800">${c.wasteType}</p>
+                  <p class="text-[11px] text-slate-500 truncate max-w-xs">${c.address}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4">${c.wardName.split('/')[0]}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${c.severity === 'High' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}">${c.severity}</span></td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${c.status}</span></td>
+            <td class="py-3 px-4">${c.assignedSweeperName ? `<span class="font-semibold">${c.assignedSweeperName}</span>` : '<span class="text-slate-400 italic">Unassigned</span>'}</td>
+            <td class="py-3 px-4 text-right">
+              ${c.status !== 'Resolved' ? `
+                <button onclick="Complaints.openDispatchModal('${c.id}')" class="px-2.5 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm">
+                  Instruct & Assign
+                </button>
+              ` : `
+                <button onclick="Tracking.searchAndDisplayComplaint('${c.id}'); window.app.navigateTo('tracking');" class="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg">
+                  View Proof
+                </button>
+              `}
+            </td>
+          </tr>
+        `).join('');
+        if (window.lucide) window.lucide.createIcons();
+      },
+      openDispatchModal(complaintId) {
+        const c = window.appStore.getComplaintById(complaintId);
+        if (!c) return;
+        const modal = document.getElementById('sweeperDispatchModal');
+        document.getElementById('dispatchComplaintId').value = c.id;
+        document.getElementById('modalComplaintTitle').textContent = `${c.id} - ${c.wasteType}`;
+        document.getElementById('modalComplaintLocation').textContent = `${c.address} (${c.wardName})`;
+        document.getElementById('modalComplaintDesc').textContent = c.description;
+        document.getElementById('modalComplaintPhoto').src = c.photoBefore;
+
+        const sel = document.getElementById('dispatchSweeperSelect');
+        sel.innerHTML = '<option value="">-- Choose Sweeper / Sanitation Crew --</option>';
+        window.appStore.getSweepers().forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id; opt.textContent = `${s.name} (${s.wardName.split('/')[0]}) - ${s.vehicle}`;
+          if (c.assignedSweeperId === s.id) opt.selected = true;
+          sel.appendChild(opt);
+        });
+
+        document.getElementById('dispatchInstruction').value = c.officerInstruction || `Dispatch crew immediately to ${c.address}. Clear waste completely, load into tipper vehicle, and disinfect area with lime powder.`;
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        if (window.lucide) window.lucide.createIcons();
+      },
+      closeDispatchModal() {
+        const modal = document.getElementById('sweeperDispatchModal');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      },
+      handleSweeperDispatchSubmit() {
+        const id = document.getElementById('dispatchComplaintId').value;
+        const sweeperId = document.getElementById('dispatchSweeperSelect').value;
+        const instructions = document.getElementById('dispatchInstruction').value.trim();
+        const priority = document.getElementById('dispatchPriority').value;
+        const sweeper = window.appStore.getSweepers().find(s => s.id === sweeperId);
+
+        if (!sweeperId) {
+          Auth.showToast('Please select a sweeper.', 'warning'); return;
+        }
+
+        window.appStore.updateComplaint(id, {
+          status: 'Sweeper Dispatched',
+          verifiedAt: new Date().toISOString(),
+          assignedOfficer: 'Dr. Rajesh Sharma (Zonal Officer)',
+          assignedSweeperId: sweeper.id,
+          assignedSweeperName: sweeper.name,
+          sweeperPhone: sweeper.phone,
+          vehicleNumber: sweeper.vehicle,
+          officerInstruction: instructions,
+          severity: priority
+        });
+
+        this.closeDispatchModal();
+        Auth.showToast(`Sweeper ${sweeper.name} dispatched with instructions!`, 'success');
+      },
+      renderSweeperTasks() {
+        const cont = document.getElementById('sweeperTasksContainer');
+        if (!cont) return;
+        const complaints = window.appStore.getComplaints();
+        const active = complaints.filter(c => c.status === 'Sweeper Dispatched' || c.status === 'In Progress');
+
+        if (active.length === 0) {
+          cont.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center border border-slate-200"><p class="text-sm font-bold text-slate-700">No Pending Pickup Requests</p><p class="text-xs text-slate-400 mt-1">All assigned tasks in your ward are clear.</p></div>`;
+          return;
+        }
+
+        cont.innerHTML = active.map(c => `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span class="font-mono font-bold text-xs bg-slate-100 px-2.5 py-1 rounded-md">${c.id}</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.status === 'In Progress' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">${c.status}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <img src="${c.photoBefore}" class="w-full h-36 object-cover rounded-xl border border-slate-200" />
+              <div class="md:col-span-2 space-y-2 text-xs">
+                <p class="font-bold text-sm text-slate-800">${c.wasteType}</p>
+                <p class="text-slate-600"><span class="font-semibold">Location:</span> ${c.address}</p>
+                <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-amber-900">
+                  <p class="font-bold">Official Instruction from Nagar Nigam:</p>
+                  <p class="italic mt-0.5">"${c.officerInstruction || 'Clear all waste and sanitize area.'}"</p>
+                </div>
+                <div class="pt-2 flex items-center justify-end gap-2">
+                  ${c.status !== 'In Progress' ? `
+                    <button onclick="Complaints.startSweeperJob('${c.id}')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg">
+                      Start Cleanup (En Route)
+                    </button>
+                  ` : ''}
+                  <button onclick="Complaints.openSweeperResolveModal('${c.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg flex items-center gap-1.5">
+                    <i data-lucide="camera" class="w-3.5 h-3.5"></i> Complete & Upload Proof
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        if (window.lucide) window.lucide.createIcons();
+      },
+      startSweeperJob(id) {
+        window.appStore.updateComplaint(id, { status: 'In Progress' });
+        Auth.showToast(`Task ${id} marked 'In Progress'.`, 'info');
+      },
+      openSweeperResolveModal(id) {
+        const c = window.appStore.getComplaintById(id);
+        if (!c) return;
+        const modal = document.getElementById('sweeperResolveModal');
+        document.getElementById('resolveComplaintId').value = c.id;
+        document.getElementById('resolveBeforePhotoPreview').src = c.photoBefore;
+        document.getElementById('resolveAfterPreviewImg').src = SAMPLE_PHOTOS.cleaned_street;
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        if (window.lucide) window.lucide.createIcons();
+      },
+      closeSweeperResolveModal() {
+        const modal = document.getElementById('sweeperResolveModal');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      },
+      handleSweeperResolveSubmit() {
+        const id = document.getElementById('resolveComplaintId').value;
+        const notes = document.getElementById('resolveNotes').value.trim() || 'Site deep cleaned, waste loaded and pavement disinfected.';
+        const tons = document.getElementById('resolveWasteQuantity').value || '1.2';
+
+        window.appStore.updateComplaint(id, {
+          status: 'Resolved',
+          photoAfter: this.sweeperAfterPhotoUrl || SAMPLE_PHOTOS.cleaned_street,
+          resolutionNotes: `${notes} (${tons} MT collected)`,
+          resolvedAt: new Date().toISOString()
+        });
+
+        this.closeSweeperResolveModal();
+        Auth.showToast(`Complaint ${id} cleared and verified!`, 'success');
+      }
+    };
+    window.Complaints = Complaints;
+
+    /* =========================================================================
+       5. COMPLAINT TRACKING, TIMELINE & CITIZEN FEEDBACK
+       ========================================================================= */
+    const Tracking = {
+      currentComplaint: null,
+      init() {
+        this.bindEvents();
+        this.renderRecentTrackingList();
+        const list = window.appStore.getComplaints();
+        if (list.length > 0) this.displayComplaintDetails(list[0]);
+      },
+      bindEvents() {
+        const form = document.getElementById('trackingSearchForm');
+        if (form) form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.searchAndDisplayComplaint(document.getElementById('trackingSearchInput').value.trim());
+        });
+        window.addEventListener('complaints:update', (e) => {
+          this.renderRecentTrackingList();
+          if (this.currentComplaint && this.currentComplaint.id === e.detail.id) {
+            this.displayComplaintDetails(e.detail);
+          }
+        });
+      },
+      searchAndDisplayComplaint(q) {
+        if (!q) { Auth.showToast('Enter a Complaint ID or mobile number.', 'warning'); return; }
+        const found = window.appStore.getComplaints().find(c => c.id.toLowerCase() === q.toLowerCase() || c.citizenPhone.includes(q) || c.id.includes(q));
+        if (found) {
+          this.displayComplaintDetails(found);
+          const input = document.getElementById('trackingSearchInput');
+          if (input) input.value = found.id;
+        } else {
+          Auth.showToast(`Complaint "${q}" not found.`, 'error');
+        }
+      },
+      renderRecentTrackingList() {
+        const cont = document.getElementById('recentTrackingCards');
+        if (!cont) return;
+        cont.innerHTML = window.appStore.getComplaints().slice(0, 5).map(c => `
+          <button onclick="Tracking.searchAndDisplayComplaint('${c.id}')"
+            class="w-full text-left p-3 rounded-xl border ${this.currentComplaint?.id === c.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 bg-white hover:bg-slate-50'} text-xs">
+            <div class="flex items-center justify-between font-mono font-bold text-slate-800 mb-1">
+              <span>${c.id}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full ${c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${c.status}</span>
+            </div>
+            <p class="font-semibold text-slate-700 truncate">${c.wasteType}</p>
+            <p class="text-[11px] text-slate-400 truncate">${c.address}</p>
+          </button>
+        `).join('');
+      },
+      displayComplaintDetails(c) {
+        this.currentComplaint = c;
+        const box = document.getElementById('trackingDetailContainer');
+        if (!box) return;
+
+        const s1 = true;
+        const s2 = c.status !== 'Pending Verification';
+        const s3 = ['Sweeper Dispatched', 'In Progress', 'Resolved'].includes(c.status);
+        const s4 = ['In Progress', 'Resolved'].includes(c.status);
+        const s5 = c.status === 'Resolved';
+
+        const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Pending';
+
+        box.innerHTML = `
+          <!-- Header Banner -->
+          <div class="p-6 bg-slate-900 text-white rounded-2xl shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="text-xl font-bold font-mono">${c.id}</h2>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${s5 ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}">${c.status}</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1">${c.wasteType} &bull; ${c.wardName}</p>
+            </div>
+            <div class="text-right text-xs">
+              <span class="text-slate-400 block">Reported At</span>
+              <span class="font-semibold">${fmt(c.createdAt)}</span>
+            </div>
+          </div>
+
+          <!-- Progress Timeline -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-6 flex items-center gap-2">
+              <i data-lucide="route" class="w-4 h-4 text-emerald-600"></i>
+              Nagar Nigam Redressal Timeline
+            </h3>
+
+            <div class="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 ${s5 ? 'before:bg-emerald-500' : 'before:bg-slate-200'}">
+              
+              <!-- 1 -->
+              <div class="relative flex items-start gap-3">
+                <span class="absolute -left-[30px] top-0 w-6 h-6 rounded-full flex items-center justify-center bg-emerald-600 text-white text-xs"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">1. Grievance Lodged by Citizen</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">${c.citizenName} &bull; ${c.address}</p>
+                  <p class="text-xs text-slate-700 italic mt-1 bg-slate-50 p-2 rounded border border-slate-100">"${c.description}"</p>
+                </div>
+              </div>
+
+              <!-- 2 -->
+              <div class="relative flex items-start gap-3">
+                <span class="absolute -left-[30px] top-0 w-6 h-6 rounded-full flex items-center justify-center ${s2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-400'} text-xs"><i data-lucide="${s2 ? 'check' : 'clock'}" class="w-3.5 h-3.5"></i></span>
+                <div>
+                  <h4 class="text-xs font-bold ${s2 ? 'text-slate-800' : 'text-slate-400'}">2. Routed to Local Area Nagar Nigam Office</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Assigned to: ${c.assignedOfficer || 'Zonal Sanitary Inspector'}</p>
+                </div>
+              </div>
+
+              <!-- 3 -->
+              <div class="relative flex items-start gap-3">
+                <span class="absolute -left-[30px] top-0 w-6 h-6 rounded-full flex items-center justify-center ${s3 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-400'} text-xs"><i data-lucide="${s3 ? 'check' : 'truck'}" class="w-3.5 h-3.5"></i></span>
+                <div class="flex-1">
+                  <h4 class="text-xs font-bold ${s3 ? 'text-slate-800' : 'text-slate-400'}">3. Sweeper Dispatched & Instructed</h4>
+                  ${s3 ? `
+                    <div class="mt-2 bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-950 space-y-1">
+                      <p><span class="font-bold">Sweeper:</span> ${c.assignedSweeperName} (<a href="tel:${c.sweeperPhone}" class="underline font-bold text-sky-700">${c.sweeperPhone}</a>)</p>
+                      <p><span class="font-bold">Vehicle:</span> ${c.vehicleNumber || 'Auto Tipper Van'}</p>
+                      <p class="pt-1 text-sky-900 border-t border-sky-200/60"><span class="font-bold">Official Instruction:</span> <em>"${c.officerInstruction || 'Clear and sanitize.'}"</em></p>
+                    </div>
+                  ` : '<p class="text-[11px] text-slate-400 mt-0.5">Awaiting crew allocation.</p>'}
+                </div>
+              </div>
+
+              <!-- 4 -->
+              <div class="relative flex items-start gap-3">
+                <span class="absolute -left-[30px] top-0 w-6 h-6 rounded-full flex items-center justify-center ${s4 ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'} text-xs"><i data-lucide="${s4 ? 'refresh-cw' : 'circle'}" class="w-3.5 h-3.5 ${s4 && !s5 ? 'animate-spin' : ''}"></i></span>
+                <div>
+                  <h4 class="text-xs font-bold ${s4 ? 'text-slate-800' : 'text-slate-400'}">4. Cleaning & Pickup In Progress</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">${s4 ? 'Crew is active on-site loading waste and washing pavement.' : 'Queued on route.'}</p>
+                </div>
+              </div>
+
+              <!-- 5 -->
+              <div class="relative flex items-start gap-3">
+                <span class="absolute -left-[30px] top-0 w-6 h-6 rounded-full flex items-center justify-center ${s5 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-400'} text-xs"><i data-lucide="${s5 ? 'award' : 'check'}" class="w-3.5 h-3.5"></i></span>
+                <div>
+                  <h4 class="text-xs font-bold ${s5 ? 'text-emerald-700' : 'text-slate-400'}">5. Resolved & Verified</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">${s5 ? `${c.resolutionNotes || 'Cleaned and sanitized.'} &bull; Cleared at ${fmt(c.resolvedAt)}` : 'Pending final clearance.'}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Side-by-Side Proof Photos -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+              <i data-lucide="image" class="w-4 h-4 text-emerald-600"></i> Photographic Verification (Before vs After)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-bold text-rose-700 uppercase tracking-wider block mb-1">Before (Citizen Report)</span>
+                <img src="${c.photoBefore}" class="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-inner" />
+              </div>
+              <div>
+                <span class="text-xs font-bold ${c.photoAfter ? 'text-emerald-700' : 'text-slate-400'} uppercase tracking-wider block mb-1">After (Resolution Proof)</span>
+                ${c.photoAfter ? `
+                  <img src="${c.photoAfter}" class="w-full h-44 object-cover rounded-xl border border-emerald-300 shadow-inner" />
+                ` : `
+                  <div class="w-full h-44 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400 text-xs">
+                    After-cleaning photo uploaded once resolved
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating & Feedback -->
+          ${s5 ? `
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-6 shadow-sm">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-950 mb-2 flex items-center gap-2">
+                <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Citizen Satisfaction Rating
+              </h3>
+              ${c.citizenRating ? `
+                <div class="bg-white rounded-xl p-4 border border-emerald-100 text-xs space-y-1">
+                  <div class="flex items-center gap-1 text-amber-400 font-bold">
+                    ${'★'.repeat(c.citizenRating)}${'☆'.repeat(5 - c.citizenRating)}
+                    <span class="ml-2 text-slate-700 font-sans">${c.citizenRating} / 5 Stars</span>
+                  </div>
+                  <p class="italic text-slate-600">"${c.citizenFeedback || 'Satisfied with the quick response.'}"</p>
+                </div>
+              ` : `
+                <div class="space-y-3">
+                  <p class="text-xs text-emerald-800">Please rate Nagar Nigam's cleaning service:</p>
+                  <div class="flex items-center gap-2">
+                    ${[1, 2, 3, 4, 5].map(n => `
+                      <button onclick="Tracking.submitRating(${n})" class="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold text-slate-700 transition-all">
+                        ${n} ★
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              `}
+            </div>
+          ` : ''}
+        `;
+        if (window.lucide) window.lucide.createIcons();
+      },
+      submitRating(num) {
+        if (!this.currentComplaint) return;
+        window.appStore.updateComplaint(this.currentComplaint.id, {
+          citizenRating: num,
+          citizenFeedback: 'Quick and thorough response by Nagar Nigam team.'
+        });
+        Auth.showToast(`Thank you! ${num}-Star rating recorded.`, 'success');
+      }
+    };
+    window.Tracking = Tracking;
+
+    /* =========================================================================
+       6. ADMIN CITY DASHBOARD, GIS HEATMAP & ANALYTICS
+       ========================================================================= */
+    const Admin = {
+      map: null,
+      markers: [],
+      statusChart: null,
+      wardChart: null,
+      init() {
+        this.renderKPIs();
+        this.initMap();
+        this.initCharts();
+        this.renderSweeperTable();
+        this.renderActivityLogs();
+        this.bindEvents();
+
+        window.addEventListener('complaints:update', () => {
+          this.renderKPIs();
+          this.updateMapMarkers();
+          this.updateCharts();
+          this.renderSweeperTable();
+          this.renderActivityLogs();
+        });
+      },
+      bindEvents() {
+        const exp = document.getElementById('exportReportBtn');
+        if (exp) exp.addEventListener('click', () => { this.exportComplaintsCSV(); });
+
+        const rst = document.getElementById('btnResetDemoData');
+        if (rst) rst.addEventListener('click', () => {
+          if (confirm('Reset demo complaints and workers to default state?')) window.appStore.resetDemoData();
+        });
+      },
+      renderKPIs() {
+        const c = window.appStore.getComplaints();
+        const total = c.length;
+        const resolved = c.filter(x => x.status === 'Resolved').length;
+        const inProgress = c.filter(x => x.status === 'Sweeper Dispatched' || x.status === 'In Progress').length;
+        const pending = c.filter(x => x.status === 'Pending Verification' || x.status === 'Nagar Nigam Verified').length;
+
+        document.getElementById('kpiTotalComplaints').textContent = total;
+        document.getElementById('kpiResolvedComplaints').textContent = resolved;
+        document.getElementById('kpiInProgressComplaints').textContent = inProgress;
+        document.getElementById('kpiPendingComplaints').textContent = pending;
+        document.getElementById('kpiWasteTons').textContent = `${(resolved * 1.4 + 2.5).toFixed(1)} MT`;
+        document.getElementById('kpiSatisfactionRating').textContent = '4.8 ★';
+      },
+      initMap() {
+        const el = document.getElementById('adminGisMap');
+        if (!el || this.map || typeof L === 'undefined') return;
+        this.map = L.map('adminGisMap', { zoomControl: true, scrollWheelZoom: false }).setView([26.8524, 80.9421], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap | Nagar Nigam GIS'
+        }).addTo(this.map);
+        this.updateMapMarkers();
+      },
+      updateMapMarkers() {
+        if (!this.map || typeof L === 'undefined') return;
+        this.markers.forEach(m => this.map.removeLayer(m));
+        this.markers = [];
+        window.appStore.getComplaints().forEach(c => {
+          const isResolved = c.status === 'Resolved';
+          const isDispatched = c.status === 'Sweeper Dispatched' || c.status === 'In Progress';
+          const color = isResolved ? '#10b981' : (isDispatched ? '#0284c7' : '#ef4444');
+
+          const icon = L.divIcon({
+            className: 'map-pin',
+            html: `<div style="background-color:${color}; width:24px; height:24px; border-radius:50%; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [24, 24], iconAnchor: [12, 24]
+          });
+
+          const marker = L.marker([c.lat || 26.8524, c.lng || 80.9421], { icon }).addTo(this.map);
+          marker.bindPopup(`
+            <div style="font-size:11px;">
+              <strong>${c.id}</strong> - ${c.wasteType}<br/>
+              <span style="color:${color}; font-weight:bold;">${c.status}</span><br/>
+              ${c.address}<br/>
+              <button onclick="Tracking.searchAndDisplayComplaint('${c.id}'); window.app.navigateTo('tracking');" style="margin-top:4px; padding:3px 6px; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;">Track Details</button>
+            </div>
+          `);
+          this.markers.push(marker);
+        });
+      },
+      initCharts() {
+        if (typeof Chart === 'undefined') return;
+        const ctxD = document.getElementById('statusDoughnutChart');
+        if (ctxD && !this.statusChart) {
+          this.statusChart = new Chart(ctxD, {
+            type: 'doughnut',
+            data: this.getStatusChartData(),
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+          });
+        }
+        const ctxB = document.getElementById('wardBarChart');
+        if (ctxB && !this.wardChart) {
+          this.wardChart = new Chart(ctxB, {
+            type: 'bar',
+            data: this.getWardChartData(),
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+          });
+        }
+      },
+      getStatusChartData() {
+        const c = window.appStore.getComplaints();
+        const r = c.filter(x => x.status === 'Resolved').length;
+        const d = c.filter(x => x.status === 'Sweeper Dispatched' || x.status === 'In Progress').length;
+        const p = c.filter(x => x.status === 'Pending Verification' || x.status === 'Nagar Nigam Verified').length;
+        return {
+          labels: ['Resolved', 'Dispatched', 'Pending'],
+          datasets: [{ data: [r, d, p], backgroundColor: ['#10b981', '#0284c7', '#ef4444'] }]
+        };
+      },
+      getWardChartData() {
+        const wards = window.appStore.getWards();
+        const c = window.appStore.getComplaints();
+        return {
+          labels: wards.map(w => w.name.split('/')[0].replace('Ward ', 'W')),
+          datasets: [
+            { label: 'Resolved', data: wards.map(w => c.filter(x => x.wardId === w.id && x.status === 'Resolved').length), backgroundColor: '#10b981' },
+            { label: 'Active', data: wards.map(w => c.filter(x => x.wardId === w.id && x.status !== 'Resolved').length), backgroundColor: '#f59e0b' }
+          ]
+        };
+      },
+      updateCharts() {
+        if (this.statusChart) { this.statusChart.data = this.getStatusChartData(); this.statusChart.update(); }
+        if (this.wardChart) { this.wardChart.data = this.getWardChartData(); this.wardChart.update(); }
+      },
+      renderSweeperTable() {
+        const tbody = document.getElementById('adminSweeperTableBody');
+        if (!tbody) return;
+        const complaints = window.appStore.getComplaints();
+        tbody.innerHTML = window.appStore.getSweepers().map(s => {
+          const active = complaints.filter(c => c.assignedSweeperId === s.id && c.status !== 'Resolved').length;
+          return `
+            <tr class="border-b border-slate-100 text-xs hover:bg-slate-50">
+              <td class="py-2.5 px-4 font-bold text-slate-800">${s.name}</td>
+              <td class="py-2.5 px-4">${s.wardName.split('/')[0]}</td>
+              <td class="py-2.5 px-4 text-slate-600">${s.vehicle}</td>
+              <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded-full font-bold ${active > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${active > 0 ? `${active} Active` : 'Idle'}</span></td>
+              <td class="py-2.5 px-4 text-center font-bold text-slate-800">${s.tasksCompleted}</td>
+              <td class="py-2.5 px-4 text-right font-bold text-amber-500">★ ${s.rating}</td>
+            </tr>
+          `;
+        }).join('');
+      },
+      renderActivityLogs() {
+        const cont = document.getElementById('adminActivityStream');
+        if (!cont) return;
+        const logs = window.appStore.getActivityLogs().slice(0, 6);
+        cont.innerHTML = logs.map(l => `
+          <div class="py-2 text-xs border-b border-slate-100 last:border-0">
+            <p class="text-slate-700 leading-snug">${l.text}</p>
+            <span class="text-[10px] text-slate-400">${new Date(l.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        `).join('');
+      },
+      exportComplaintsCSV() {
+        const c = window.appStore.getComplaints();
+        const headers = ['Complaint ID', 'Waste Type', 'Ward', 'Citizen', 'Phone', 'Address', 'Status', 'Sweeper', 'Rating'];
+        const rows = c.map(x => [`"${x.id}"`, `"${x.wasteType}"`, `"${x.wardName}"`, `"${x.citizenName}"`, `"${x.citizenPhone}"`, `"${x.address.replace(/"/g, '""')}"`, `"${x.status}"`, `"${x.assignedSweeperName || 'N/A'}"`, `"${x.citizenRating || 'N/A'}"`]);
+        const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `swachh_nagar_report_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        Auth.showToast('CSV Report exported!', 'success');
+      }
+    };
+    window.Admin = Admin;
+
+    /* =========================================================================
+       7. WASTE AWARENESS, SMART CLASSIFIER & SWACHH QUIZ
+       ========================================================================= */
+    const WASTE_DATABASE = [
+      { keywords: ['banana', 'fruit', 'vegetable', 'peel', 'food', 'rice', 'roti', 'tea', 'coffee', 'leaves', 'egg shell'], bin: 'Green (Wet Waste)', color: 'emerald', tips: 'Do not wrap in plastic. Keep moist or convert into organic compost in your garden.' },
+      { keywords: ['paper', 'newspaper', 'cardboard', 'box', 'magazine', 'book'], bin: 'Blue (Dry Waste)', color: 'sky', tips: 'Keep clean and dry. Flatten cartons to save space before binning.' },
+      { keywords: ['pizza box', 'oily box'], bin: 'Green (Wet/Compostable) or Red', color: 'amber', tips: 'If soaked with oil/cheese, it cannot be recycled in paper mills! Tear the clean lid for Blue Bin and dispose of the greasy base in Wet/Organic.' },
+      { keywords: ['plastic bottle', 'bottle', 'pet bottle', 'water bottle', 'cold drink', 'shampoo bottle'], bin: 'Blue (Dry Waste)', color: 'sky', tips: 'Empty liquid completely, rinse, remove the cap, and crush the bottle.' },
+      { keywords: ['milk pouch', 'milk packet', 'oil packet'], bin: 'Blue (Dry Waste)', color: 'sky', tips: 'Rinse inside with water to prevent foul odor, let dry, and bundle with soft plastics.' },
+      { keywords: ['glass', 'mirror', 'broken glass'], bin: 'Blue / Wrap Carefully', color: 'sky', tips: 'Wrap tightly in multiple layers of old newspaper and label "BROKEN GLASS" to prevent injuring sweepers.' },
+      { keywords: ['battery', 'cell', 'lithium'], bin: 'Red / Black (Hazardous E-Waste)', color: 'rose', tips: 'Never throw in ordinary bin! Contains heavy metals. Hand over to municipal E-waste collection.' },
+      { keywords: ['medicine', 'syrup', 'tablet', 'pill', 'expired medicine'], bin: 'Red / Black (Hazardous Bio-Waste)', color: 'rose', tips: 'Do not flush down toilets. Hand over to your chemist or municipal hazardous bin.' }
+    ];
+
+    const QUIZ_QUESTIONS = [
+      { q: 'Where should you throw rinsed milk packets and plastic bottles?', options: ['Green Bin', 'Blue Bin (Dry Recyclable Waste)', 'Red Bin', 'Roadside'], correct: 1, explanation: 'Clean plastic bottles and rinsed milk pouches belong to the Blue Bin!' },
+      { q: 'What is the proper way to dispose of broken glass items?', options: ['Directly in green bin', 'Wrap securely in newspaper with "BROKEN GLASS" label', 'Burn on street', 'Bury in park'], correct: 1, explanation: 'Wrapping sharp glass protects our sweepers from severe hand cuts.' },
+      { q: 'Where do fruit peels and vegetable scraps belong?', options: ['Blue Bin', 'Green Bin (Wet Compostable)', 'Red Bin', 'Throw in drain'], correct: 1, explanation: 'Wet organic waste turns into rich nutrient compost.' },
+      { q: 'What is the penalty under NGT rules for open burning of municipal waste?', options: ['No penalty', '₹50 fine', 'Up to ₹5,000 to ₹25,000 fine', 'Only verbal warning'], correct: 2, explanation: 'Open waste burning releases hazardous carcinogenic dioxins.' },
+      { q: 'How should expired medicines and chemical batteries be discarded?', options: ['Flush down toilet', 'Mix with kitchen waste', 'Hand over to Red/Hazardous collection', 'Blue bin'], correct: 2, explanation: 'Chemicals and batteries pollute groundwater and require specialized hazardous treatment.' }
+    ];
+
+    const Awareness = {
+      currentQuestionIndex: 0,
+      score: 0,
+      init() {
+        this.bindEvents();
+        this.renderQuizQuestion();
+      },
+      bindEvents() {
+        const input = document.getElementById('wasteItemSearch');
+        if (input) input.addEventListener('input', (e) => { this.lookupItem(e.target.value.trim().toLowerCase()); });
+
+        document.querySelectorAll('.tag-waste-pill').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const item = e.target.textContent.trim();
+            if (input) input.value = item;
+            this.lookupItem(item.toLowerCase());
+          });
+        });
+
+        const nextBtn = document.getElementById('quizNextBtn');
+        if (nextBtn) nextBtn.addEventListener('click', () => { this.handleNextQuestion(); });
+
+        const rstBtn = document.getElementById('quizRestartBtn');
+        if (rstBtn) rstBtn.addEventListener('click', () => { this.restartQuiz(); });
+      },
+      lookupItem(query) {
+        const res = document.getElementById('wasteLookupResult');
+        if (!res) return;
+        if (!query) { res.classList.add('hidden'); return; }
+
+        const match = WASTE_DATABASE.find(item => item.keywords.some(k => query.includes(k) || k.includes(query)));
+        res.classList.remove('hidden');
+
+        if (match) {
+          const colors = { emerald: 'bg-emerald-50 border-emerald-300 text-emerald-950', sky: 'bg-sky-50 border-sky-300 text-sky-950', rose: 'bg-rose-50 border-rose-300 text-rose-950', amber: 'bg-amber-50 border-amber-300 text-amber-950' };
+          res.className = `p-4 rounded-xl border ${colors[match.color]} text-xs`;
+          res.innerHTML = `
+            <div class="flex items-start gap-3">
+              <div class="p-2 rounded-lg bg-emerald-600 text-white"><i data-lucide="check" class="w-4 h-4"></i></div>
+              <div>
+                <p class="font-bold text-sm">Designated Bin: ${match.bin}</p>
+                <p class="mt-1 opacity-90">${match.tips}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          res.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs';
+          res.innerHTML = `<p class="font-bold">General Rule of Thumb:</p><p class="mt-0.5">Organic/food waste goes in <strong>Green</strong>; dry recyclable packaging goes in <strong>Blue</strong>; batteries/chemicals go in <strong>Red</strong>.</p>`;
+        }
+        if (window.lucide) window.lucide.createIcons();
+      },
+      renderQuizQuestion() {
+        const qCont = document.getElementById('quizQuestionContainer');
+        const rCont = document.getElementById('quizResultContainer');
+        const nBtn = document.getElementById('quizNextBtn');
+        if (!qCont) return;
+
+        if (this.currentQuestionIndex >= QUIZ_QUESTIONS.length) {
+          qCont.classList.add('hidden');
+          if (nBtn) nBtn.classList.add('hidden');
+          if (rCont) {
+            rCont.classList.remove('hidden');
+            document.getElementById('quizFinalScore').textContent = `${this.score} / ${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quizBadgeFeedback').innerHTML = `<p class="p-2 bg-emerald-100 text-emerald-800 rounded text-xs font-bold">🏅 Swachh Bharat Citizen Badge Earned!</p>`;
+          }
+          return;
+        }
+
+        const data = QUIZ_QUESTIONS[this.currentQuestionIndex];
+        if (rCont) rCont.classList.add('hidden');
+        qCont.classList.remove('hidden');
+        if (nBtn) nBtn.classList.add('hidden');
+
+        document.getElementById('quizProgressText').textContent = `Question ${this.currentQuestionIndex + 1} of ${QUIZ_QUESTIONS.length}`;
+        document.getElementById('quizQuestionText').textContent = data.q;
+        document.getElementById('quizOptionsContainer').innerHTML = data.options.map((opt, idx) => `
+          <button type="button" onclick="Awareness.handleOptionSelect(${idx})" 
+            class="quiz-btn w-full text-left p-3 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 text-xs font-medium text-slate-700 transition-all flex items-center justify-between">
+            <span>${opt}</span>
+          </button>
+        `).join('');
+
+        const exp = document.getElementById('quizExplanationBox');
+        if (exp) exp.classList.add('hidden');
+      },
+      handleOptionSelect(selIdx) {
+        const data = QUIZ_QUESTIONS[this.currentQuestionIndex];
+        const btns = document.querySelectorAll('.quiz-btn');
+        const correct = selIdx === data.correct;
+        if (correct) this.score++;
+
+        btns.forEach((b, idx) => {
+          b.disabled = true;
+          if (idx === data.correct) {
+            b.className = 'w-full text-left p-3 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-xs flex justify-between';
+            b.innerHTML += '<span>✓</span>';
+          } else if (idx === selIdx && !correct) {
+            b.className = 'w-full text-left p-3 rounded-xl border border-rose-400 bg-rose-50 text-rose-900 text-xs flex justify-between';
+            b.innerHTML += '<span>✗</span>';
+          }
+        });
+
+        const exp = document.getElementById('quizExplanationBox');
+        if (exp) {
+          exp.classList.remove('hidden');
+          exp.innerHTML = `<div class="p-2.5 rounded-lg text-xs ${correct ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'}">${data.explanation}</div>`;
+        }
+
+        const nBtn = document.getElementById('quizNextBtn');
+        if (nBtn) nBtn.classList.remove('hidden');
+      },
+      handleNextQuestion() {
+        this.currentQuestionIndex++;
+        this.renderQuizQuestion();
+      },
+      restartQuiz() {
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.renderQuizQuestion();
+      }
+    };
+    window.Awareness = Awareness;
+
+    /* =========================================================================
+       8. MAIN APPLICATION CONTROLLER
+       ========================================================================= */
+    class App {
+      constructor() { this.currentView = 'report'; }
+      init() {
+        window.toastNotification = (msg, type = 'info') => this.showToast(msg, type);
+        Auth.init();
+        Complaints.init();
+        Tracking.init();
+        Admin.init();
+        Awareness.init();
+        this.bindNavigation();
+        this.applyRolePermissions();
+        this.navigateTo('report');
+        if (window.lucide) window.lucide.createIcons();
+      }
+      bindNavigation() {
+        document.querySelectorAll('[data-view-target]').forEach(el => {
+          el.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.navigateTo(el.dataset.viewTarget);
+            const drawer = document.getElementById('mobileNavDrawer');
+            if (drawer) drawer.classList.add('hidden');
+          });
+        });
+
+        const tgl = document.getElementById('mobileMenuToggleBtn');
+        const drw = document.getElementById('mobileNavDrawer');
+        if (tgl && drw) tgl.addEventListener('click', () => { drw.classList.toggle('hidden'); });
+      }
+      navigateTo(viewId) {
+        this.currentView = viewId;
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+        const active = document.getElementById(`view-${viewId}`);
+        if (active) active.classList.remove('hidden');
+
+        document.querySelectorAll('[data-view-target]').forEach(link => {
+          if (link.dataset.viewTarget === viewId) {
+            link.classList.add('text-emerald-600', 'font-bold', 'border-b-2', 'border-emerald-600');
+            link.classList.remove('text-slate-600', 'font-semibold', 'border-transparent');
+          } else {
+            link.classList.remove('text-emerald-600', 'font-bold', 'border-b-2', 'border-emerald-600');
+            link.classList.add('text-slate-600', 'font-semibold', 'border-transparent');
+          }
+        });
+
+        if (viewId === 'admin' && window.Admin && window.Admin.map) {
+          setTimeout(() => { window.Admin.map.invalidateSize(); }, 200);
+        }
+        if (viewId === 'officer') Complaints.renderOfficerComplaintsTable();
+        if (viewId === 'sweeper') Complaints.renderSweeperTasks();
+
+        if (window.lucide) window.lucide.createIcons();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      applyRolePermissions() {
+        const user = window.appStore.getCurrentUser();
+        const role = user ? user.role : 'citizen';
+        const notice = document.getElementById('roleContextBanner');
+        if (notice) {
+          const descs = {
+            citizen: '👤 Active View: <strong>Citizen Mode</strong>. Snap live photos, lock real GPS, and track waste grievances.',
+            officer: '🏢 Active View: <strong>Nagar Nigam Ward Officer Desk</strong>. Review complaints, issue instructions, and dispatch sweepers.',
+            sweeper: '🧹 Active View: <strong>Sweeper / Sanitation Worker Mode</strong>. View assigned pickup tickets, instructions, and upload proof of cleaning.',
+            admin: '👑 Active View: <strong>Municipal Commissioner (Admin)</strong>. GIS waste heatmap, workforce leaderboard, and city analytics.'
+          };
+          notice.innerHTML = descs[role] || descs.citizen;
+        }
+        if (role === 'sweeper' && this.currentView === 'report') this.navigateTo('sweeper');
+        else if (role === 'officer' && this.currentView === 'report') this.navigateTo('officer');
+        else if (role === 'admin' && this.currentView === 'report') this.navigateTo('admin');
+      }
+      showToast(message, type = 'info') {
+        const cont = document.getElementById('toastContainer');
+        if (!cont) return;
+        const toast = document.createElement('div');
+        const colors = {
+          success: 'border-emerald-500 bg-emerald-950 text-emerald-100',
+          error: 'border-rose-500 bg-rose-950 text-rose-100',
+          warning: 'border-amber-500 bg-amber-950 text-amber-100',
+          info: 'border-sky-500 bg-slate-900 text-slate-100'
+        };
+        toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 shadow-xl text-xs font-medium toast-slide-in pointer-events-auto ${colors[type] || colors.info}`;
+        toast.innerHTML = `<span class="flex-1">${message}</span><button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">✕</button>`;
+        cont.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = new App();
+      window.app.init();
+    });
+  </script>
+
+</body>
+</html>
